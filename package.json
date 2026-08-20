@@ -14,7 +14,8 @@
   ],
   "scripts": {
     "sync": "node scripts/sync-data.js",
-    "check": "node --check lib/client.js && node --check lib/index.js"
+    "check": "node --check lib/client.js && node --check lib/index.js",
+    "test": "node scripts/test-client.mjs"
   },
   "dsh": {
     "client": {
