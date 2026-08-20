@@ -128,7 +128,15 @@ docs/design.md             design baseline and decisions
 
 ## Roadmap
 
-- v3 — settings panel for phrase management.
+The settings panel (v3) is delivered. No further milestones are planned;
+optional future work:
+
+- auto-save on preference control change (debounced) if the explicit Save
+  button ever feels heavy — achievable without any new dependencies;
+- re-evaluate migrating preferences into the durable `settings` service
+  only if a concrete need appears (e.g. a DSH settings export/sync feature
+  users want this plugin's preferences to ride). See `docs/design.md` for
+  the decision record.
 
 ## License
 

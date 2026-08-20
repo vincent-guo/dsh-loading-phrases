@@ -135,8 +135,17 @@ v3.0 deviation from the original memo: **preferences (mode, intervals,
 shuffle, language) also live in the config file** rather than the `settings`
 service, because the settings-service route (schemastery schema dependency,
 namespace registration, `ctx.settingsScope` mirror plumbing) was deferred.
-The durable `settings` service remains the natural v3.1 upgrade when
-preference separation from content becomes worthwhile.
+
+**v3.1 (settings-service migration) is cancelled.** The user config now
+lives in `$DSH_HOME/dsh-loading-phrases.json` — home-level, profile-shared,
+and update-safe, so the migration's main motivation (durable, canonical
+preference storage) is already satisfied. The remaining benefits were
+marginal: "save applies immediately" already works via the POST +
+`applySection` path, and instant-apply controls can be added with a
+debounced auto-save without any new dependencies. The costs were concrete:
+two runtime dependencies, schema upkeep, and a return to dual-source
+preference resolution. Revisit only if a real need appears (e.g. DSH
+settings export/sync).
 
 ## Verification
 
@@ -177,3 +186,7 @@ preference separation from content becomes worthwhile.
   save lists, restore defaults, preference controls, and in-place re-apply
   on save (POST → applySection). Preferences stay in the JSON config for
   v3.0; the durable `settings` service is deferred to v3.1.
+- v3.1 (settings-service migration) cancelled once the user config moved to
+  `$DSH_HOME/dsh-loading-phrases.json`: single-source JSON already covers
+  durability and immediate apply; the migration's remaining benefits were
+  marginal against two runtime dependencies and dual-source resolution.
