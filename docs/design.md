@@ -65,9 +65,14 @@ host-side file I/O in v1 (phrases are bundled).
 Single source of truth: `src/data/witty.json` / `src/data/tips.json`;
 `scripts/sync-data.js` regenerates the data blocks in `lib/client.js`.
 
-## Configuration (v2, planned)
+## Configuration (implemented)
 
-`dsh-loading-phrases.json` read by the host half:
+The host half registers `GET /plugins/dsh-loading-phrases/config.json`
+(`kind: exact`, `Cache-Control: no-store`) and reads
+`dsh-loading-phrases.json` from the package root on **every request**, so
+config edits apply on the next page refresh without a restart. The client
+fetches it at `apply` time and falls back to built-in defaults on any
+failure.
 
 ```json
 {
@@ -85,6 +90,9 @@ Single source of truth: `src/data/witty.json` / `src/data/tips.json`;
 
 `mode`: `tips` | `witty` | `all` | `off` (off = yield entirely, original
 text untouched). Per-language overrides replace built-ins per language.
+Code edits to `lib/*.js` require a web profile restart (bundle revisions
+only re-enter the module graph through HMR or a restart); config edits do
+not.
 
 ## History / decisions log
 
@@ -96,4 +104,7 @@ text untouched). Per-language overrides replace built-ins per language.
   C (harness slotification), D (pure-CSS in original position) — **D won**
   after the user's `dsh-witty-loader` proved the mechanism; merge decision:
   deliver in this repository as a plain package.
-- Tuning constants live in `lib/client.js` until v2 config lands.
+- Tuning constants in `lib/client.js` are defaults; the host-served config
+  overrides them at runtime.
+- The validation-stage dynamic Cordis plugin (`dshlp-1`) was stopped and then
+  removed entirely; its source is archived under `legacy/dynamic-package/`.

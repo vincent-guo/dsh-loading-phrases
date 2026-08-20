@@ -45,18 +45,44 @@ Then add a load row to `~/.dsh/profiles/<profile>/cordis.patch.yml`
 
 Hard-refresh the Web GUI page (⌘/Ctrl+Shift+R).
 
+## Configuration
+
+`dsh-loading-phrases.json` at the package root is served by the host half and
+read by the client on every page load — edits apply on the next refresh, no
+restart needed:
+
+```json
+{
+  "loadingPhrases": {
+    "mode": "all",
+    "wittyIntervalMs": 5000,
+    "tipsIntervalMs": 10000,
+    "shuffle": true,
+    "language": "auto",
+    "phrases": { "en": [], "zh": [] },
+    "tips": { "en": [], "zh": [] }
+  }
+}
+```
+
+| Key | Values | Default | Meaning |
+| --- | --- | --- | --- |
+| `mode` | `tips` / `witty` / `all` / `off` | `all` | `off` yields entirely: the original `Deep diving...` stays untouched |
+| `wittyIntervalMs` | number | `5000` | Dwell time for a witty phrase |
+| `tipsIntervalMs` | number | `10000` | Dwell time for a tip |
+| `shuffle` | boolean | `true` | No-repeat rotation; `false` = random with replacement |
+| `language` | `auto` / `en` / `zh` | `auto` | Force a language instead of following the GUI locale |
+| `phrases`, `tips` | `{ "en": [...], "zh": [...] }` | empty | Per-language overrides; a non-empty list replaces the built-in list for that language |
+
 ## Customizing phrases
 
 1. Edit `src/data/witty.json` and/or `src/data/tips.json`
    (`en` / `zh` arrays are independent content, not translations).
 2. Run `node scripts/sync-data.js` (or `npm run sync`) to regenerate the
    data blocks in `lib/client.js`, then `npm run check`.
-3. Hard-refresh the page. If the old content persists, restart the web
-   profile process — bundle revisions only re-enter the module graph through
-   HMR or a restart.
-
-Rotation tuning (dwell times, shuffle) lives in the `TUNING` section at the
-top of `lib/client.js`.
+3. Hard-refresh the page for config edits. **Code edits** (`lib/*.js`)
+   require a web profile restart — bundle revisions only re-enter the module
+   graph through HMR or a restart.
 
 ## Content
 
@@ -68,18 +94,19 @@ top of `lib/client.js`.
 ## Repository layout
 
 ```
-lib/index.js        host half (stub in v1; config file planned for v2)
-lib/client.js       client bundle (DOM target, rotation engine, generated data)
-src/data/*.json     phrase/tips content (single source of truth)
-scripts/sync-data.js  regenerates the data blocks in lib/client.js
-docs/design.md      design baseline and decisions
-legacy/             validation-stage dynamic Cordis package (reference only)
+dsh-loading-phrases.json   default configuration (served by the host half)
+lib/index.js               host half (config HTTP route)
+lib/client.js              client bundle (DOM target, rotation engine, generated data)
+src/data/*.json            phrase/tips content (single source of truth)
+scripts/sync-data.js       regenerates the data blocks in lib/client.js
+scripts/test-client.mjs    client bundle behavior simulation
+scripts/test-host.mjs      host config route test
+docs/design.md             design baseline and decisions
+legacy/                    validation-stage dynamic Cordis package (reference only)
 ```
 
 ## Roadmap
 
-- v2 — `dsh-loading-phrases.json` config (mode, intervals, shuffle,
-  per-language overrides) read by the host half.
 - v3 — settings panel for phrase management.
 
 ## License

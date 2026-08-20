@@ -41,16 +41,42 @@ dsh plugin add /绝对路径/dsh-loading-phrases
 
 硬刷新 Web GUI 页面（⌘/Ctrl+Shift+R）。
 
+## 配置
+
+包根目录的 `dsh-loading-phrases.json` 由 host 半通过 HTTP 路由提供，客户端每次
+页面加载时读取——改配置只需刷新页面，无需重启：
+
+```json
+{
+  "loadingPhrases": {
+    "mode": "all",
+    "wittyIntervalMs": 5000,
+    "tipsIntervalMs": 10000,
+    "shuffle": true,
+    "language": "auto",
+    "phrases": { "en": [], "zh": [] },
+    "tips": { "en": [], "zh": [] }
+  }
+}
+```
+
+| 键 | 取值 | 默认 | 含义 |
+| --- | --- | --- | --- |
+| `mode` | `tips` / `witty` / `all` / `off` | `all` | `off` 时插件完全让路，原始 `Deep diving...` 原样显示 |
+| `wittyIntervalMs` | 数字 | `5000` | 俏皮话停留时长 |
+| `tipsIntervalMs` | 数字 | `10000` | 提示停留时长 |
+| `shuffle` | 布尔 | `true` | 无重复轮换；`false` 为有放回随机 |
+| `language` | `auto` / `en` / `zh` | `auto` | 强制语言，否则跟随界面语言 |
+| `phrases`、`tips` | `{ "en": [...], "zh": [...] }` | 空 | 按语言覆盖；非空列表替换该语言的内置列表 |
+
 ## 自定义短语
 
 1. 编辑 `src/data/witty.json` 和/或 `src/data/tips.json`（`en` / `zh` 是独立
    内容，非逐条互译）；
 2. 运行 `node scripts/sync-data.js`（或 `npm run sync`）重新生成
    `lib/client.js` 中的数据块，再 `npm run check`；
-3. 硬刷新页面。若仍是旧内容，重启 web profile 进程——bundle 修订只有经 HMR
-   或重启才会重新进入模块图谱。
-
-轮换调参（停留时长、shuffle）在 `lib/client.js` 顶部的 `TUNING` 区。
+3. 改配置只需硬刷新页面；**改代码**（`lib/*.js`）需要重启 web profile
+   进程——bundle 修订只有经 HMR 或重启才会重新进入模块图谱。
 
 ## 内容
 
@@ -62,18 +88,19 @@ dsh plugin add /绝对路径/dsh-loading-phrases
 ## 仓库结构
 
 ```
-lib/index.js        host 半（v1 为空壳；v2 计划读配置文件）
-lib/client.js       客户端 bundle（DOM 定位、轮换引擎、生成的数据块）
-src/data/*.json     短语内容（唯一事实来源）
-scripts/sync-data.js  重新生成 lib/client.js 中的数据块
-docs/design.md      设计基线与决策记录
-legacy/             验证阶段的动态 Cordis 插件（仅存档）
+dsh-loading-phrases.json   默认配置（host 半提供）
+lib/index.js               host 半（配置 HTTP 路由）
+lib/client.js              客户端 bundle（DOM 定位、轮换引擎、生成的数据块）
+src/data/*.json            短语内容（唯一事实来源）
+scripts/sync-data.js       重新生成 lib/client.js 中的数据块
+scripts/test-client.mjs    客户端 bundle 行为仿真
+scripts/test-host.mjs      host 配置路由测试
+docs/design.md             设计基线与决策记录
+legacy/                    验证阶段的动态 Cordis 插件（仅存档）
 ```
 
 ## 路线图
 
-- v2 —— `dsh-loading-phrases.json` 配置（mode、间隔、shuffle、按语言覆盖），
-  由 host 半读取。
 - v3 —— 短语管理设置面板。
 
 ## 许可证

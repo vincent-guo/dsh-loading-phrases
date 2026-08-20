@@ -11,7 +11,8 @@ practical tips, matching the GUI locale (zh / en).
 
 Delivery route: mounted as a package row in the DSH profile
 (`cordis.patch.yml` + `dsh plugin add`); the client bundle registers through
-`window.__ModuleLoader__.load`. The host half is a stub in v1.
+`window.__ModuleLoader__.load`. The host half serves the configuration
+route.
 
 ## Repository rules
 
@@ -23,6 +24,11 @@ Delivery route: mounted as a package row in the DSH profile
 - `lib/client.js` is a **hand-written CJS-style factory** (no imports, no
   build step) and must stay syntactically valid: run `node --check
   lib/client.js` before committing.
+- `lib/index.js` is a plain ESM host plugin; it registers the config route
+  (`GET /plugins/dsh-loading-phrases/config.json`, no-store) that reads the
+  package-root `dsh-loading-phrases.json` on every request.
+- Run `npm test` (client behavior simulation + host route test) before
+  committing behavior changes; add scenario coverage for new config keys.
 
 ## Content workflow (single source of truth)
 
