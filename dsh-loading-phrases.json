@@ -1,0 +1,11 @@
+{
+  "loadingPhrases": {
+    "mode": "all",
+    "wittyIntervalMs": 5000,
+    "tipsIntervalMs": 10000,
+    "shuffle": true,
+    "language": "auto",
+    "phrases": { "en": [], "zh": [] },
+    "tips": { "en": [], "zh": [] }
+  }
+}
