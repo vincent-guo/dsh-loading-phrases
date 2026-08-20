@@ -30,19 +30,21 @@ let route = null
 let routeDisposed = false
 const disposers = []
 const ctx = {
-  get: (name) =>
-    name === 'webServer'
-      ? {
-          register(r) {
-            route = r
-            return () => {
-              routeDisposed = true
-            }
-          },
-        }
-      : undefined,
-  effect: (fn) => {
-    disposers.push(fn())
+  inject(names, cb) {
+    const scope = {
+      webServer: {
+        register(r) {
+          route = r
+          return () => {
+            routeDisposed = true
+          }
+        },
+      },
+      effect: (fn) => {
+        disposers.push(fn())
+      },
+    }
+    cb(scope)
   },
 }
 
@@ -50,7 +52,7 @@ apply(ctx)
 
 assert(route !== null, 'route registered')
 assert(route.kind === 'exact', 'route kind is exact')
-assert(route.path === '/plugins/dsh-loading-phrases/config.json', 'route path matches client fetch')
+assert(route.path === '/dsh-loading-phrases/config.json', 'route path matches client fetch and avoids the /plugins prefix')
 
 function makeRes() {
   return {
