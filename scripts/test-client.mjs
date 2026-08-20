@@ -5,14 +5,16 @@
 // ctx with a locale face) and asserts the observable contract:
 //
 //   - registration id and apply shape
-//   - a status line gets the data-dshlp attribute when it appears (run start)
+//   - a status line gets data-dshlp + aria-label when it appears (run start)
 //   - the first phrase of a run is a witty phrase
 //   - strict alternation witty (5 s) -> tips (10 s) -> witty ...
 //   - no-repeat shuffle: full coverage per channel, no back-to-back repeats
 //   - locale switch repaints immediately with the new language's lists
 //   - config support: mode tips / off, custom intervals, per-language
 //     overrides, forced language
-//   - element removal clears the attribute and timers
+//   - multiple concurrent status lines rotate independently
+//   - selector self-diagnostics when the product structure changes
+//   - element removal clears attributes and timers
 //   - cleanup disconnects the observer and removes the style tag
 //
 // Usage: node scripts/test-client.mjs
@@ -38,6 +40,7 @@ function assert(cond, msg) {
 
 // --- fake browser environment ---------------------------------------------
 let observerInstance = null
+let flowRootFake = { querySelectorAll: () => [] }
 
 class FakeEl {
   constructor() {
@@ -72,6 +75,9 @@ const document = {
   querySelectorAll() {
     return els.filter((e) => e.isConnected)
   },
+  querySelector(sel) {
+    return sel === '[data-chat-flow]' ? flowRootFake : null
+  },
   createElement(tag) {
     if (tag !== 'style') throw new Error(`unexpected createElement(${tag})`)
     return styleTag
@@ -90,6 +96,15 @@ class MutationObserver {
   disconnect() {
     this.disconnected = true
   }
+}
+
+const consoleStub = {
+  warns: [],
+  warn(...args) {
+    this.warns.push(args.join(' '))
+  },
+  log() {},
+  error() {},
 }
 
 // --- fake clock --------------------------------------------------------------
@@ -174,6 +189,7 @@ const fetchStub = () => {
 
 function reset() {
   els = []
+  flowRootFake = { querySelectorAll: () => [] }
   styleTag.removed = false
   styleTag.textContent = ''
   styleTag.attrs.clear()
@@ -182,6 +198,7 @@ function reset() {
   disposers = []
   localeSubs.clear()
   configImpl = null
+  consoleStub.warns = []
   timeouts.clear()
   microtasks.length = 0
   now = 0
@@ -196,9 +213,10 @@ const runner = new Function(
   'clearTimeout',
   'queueMicrotask',
   'fetch',
+  'console',
   `${bundle}\n;return 0`,
 )
-runner(win, document, MutationObserver, setTimeout, clearTimeout, queueMicrotask, fetchStub)
+runner(win, document, MutationObserver, setTimeout, clearTimeout, queueMicrotask, fetchStub, consoleStub)
 assert(loadedId === 'dsh-loading-phrases', 'bundle registers id dsh-loading-phrases')
 assert(typeof factory === 'function', 'factory captured')
 const plugin = factory()
@@ -209,6 +227,7 @@ reset()
 await plugin.apply(ctx)
 assert(styleTag.attrs.get('data-plugin-css') === 'dsh-loading-phrases', 'style tag installed with plugin id')
 assert(styleTag.textContent.includes('attr(data-dshlp)'), 'CSS carries attr() phrase carrier')
+assert(styleTag.textContent.includes('text-overflow: ellipsis'), 'CSS truncates long phrases in narrow layouts')
 
 const el = new FakeEl()
 els.push(el)
@@ -216,10 +235,12 @@ triggerMutation()
 const p1 = el.getAttribute('data-dshlp')
 assert(p1 !== undefined, 'attribute set when the status line appears (run start)')
 assert(witty.en.includes(p1), `first phrase is an English witty phrase (got "${p1}")`)
+assert(el.getAttribute('aria-label') === p1, 'aria-label mirrors the phrase for assistive tech')
 
 advance(5000)
 const p2 = el.getAttribute('data-dshlp')
 assert(tips.en.includes(p2), `after 5 s the line shows an English tip (got "${p2}")`)
+assert(el.getAttribute('aria-label') === p2, 'aria-label follows each rotation')
 
 advance(10000)
 const p3 = el.getAttribute('data-dshlp')
@@ -236,6 +257,7 @@ active = 'zh'
 for (const sub of [...localeSubs]) sub()
 const zhFirst = el.getAttribute('data-dshlp')
 assert(witty.zh.includes(zhFirst), `locale switch repaints immediately with a zh witty phrase (got "${zhFirst}")`)
+assert(el.getAttribute('aria-label') === zhFirst, 'aria-label repaints with the locale')
 
 const zhWittySeen = [zhFirst]
 for (let i = 1; i < witty.zh.length; i++) {
@@ -255,6 +277,7 @@ el.isConnected = false
 els = []
 triggerMutation()
 assert(el.getAttribute('data-dshlp') === undefined, 'attribute removed when the status line disappears (run end)')
+assert(el.getAttribute('aria-label') === undefined, 'aria-label removed when the run ends')
 assert(timeouts.size === 0, 'rotation timer cleared on removal')
 
 for (const dispose of disposers) dispose()
@@ -306,6 +329,46 @@ const elLang = new FakeEl()
 els.push(elLang)
 triggerMutation()
 assert(witty.zh.includes(elLang.getAttribute('data-dshlp')), 'forced language zh wins over the en GUI locale')
+
+// --- scenario 8: multiple concurrent status lines ------------------------------------
+reset()
+await plugin.apply(ctx)
+const elA = new FakeEl()
+const elB = new FakeEl()
+els.push(elA, elB)
+triggerMutation()
+assert(elA.getAttribute('data-dshlp') !== undefined, 'line A gets a phrase')
+assert(elB.getAttribute('data-dshlp') !== undefined, 'line B gets a phrase')
+advance(5000)
+assert(tips.en.includes(elA.getAttribute('data-dshlp')), 'line A rotates independently')
+assert(tips.en.includes(elB.getAttribute('data-dshlp')), 'line B rotates independently')
+elB.isConnected = false
+els = [elA]
+triggerMutation()
+assert(elB.getAttribute('data-dshlp') === undefined, 'removed line B is cleaned up')
+advance(10000)
+assert(witty.en.includes(elA.getAttribute('data-dshlp')), 'line A keeps rotating after B is gone')
+
+// --- scenario 9: selector self-diagnostics -------------------------------------------
+reset()
+flowRootFake = { querySelectorAll: () => [new FakeEl()] }
+await plugin.apply(ctx)
+assert(
+  consoleStub.warns.some((w) => w.includes('not as a direct child')),
+  'warns when the status line exists but the structure changed',
+)
+
+reset()
+flowRootFake = null
+await plugin.apply(ctx)
+assert(
+  consoleStub.warns.some((w) => w.includes('[data-chat-flow] container not found')),
+  'warns when the chat-flow container itself is gone',
+)
+
+reset()
+await plugin.apply(ctx)
+assert(consoleStub.warns.length === 0, 'no warnings when nothing suspicious is present')
 
 console.log(failures === 0 ? '\nALL CLIENT CHECKS PASSED' : `\n${failures} CHECK(S) FAILED`)
 process.exit(failures === 0 ? 0 : 1)
