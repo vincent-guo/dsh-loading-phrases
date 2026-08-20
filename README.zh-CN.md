@@ -96,7 +96,6 @@ scripts/sync-data.js       重新生成 lib/client.js 中的数据块
 scripts/test-client.mjs    客户端 bundle 行为仿真
 scripts/test-host.mjs      host 配置路由测试
 docs/design.md             设计基线与决策记录
-legacy/                    验证阶段的动态 Cordis 插件（仅存档）
 ```
 
 ## 路线图

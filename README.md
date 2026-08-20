@@ -102,7 +102,6 @@ scripts/sync-data.js       regenerates the data blocks in lib/client.js
 scripts/test-client.mjs    client bundle behavior simulation
 scripts/test-host.mjs      host config route test
 docs/design.md             design baseline and decisions
-legacy/                    validation-stage dynamic Cordis package (reference only)
 ```
 
 ## Roadmap

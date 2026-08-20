@@ -11,13 +11,16 @@ informative tips, in the original position.
 - `dsh plugin add <path>` (or `corepack pnpm add <path>` in the profile),
 - a load row in `~/.dsh/profiles/<profile>/cordis.patch.yml`,
 - client bundle registered through `window.__ModuleLoader__.load` (full
-  browser environment), host half `lib/index.js` (stub in v1).
+  browser environment), host half `lib/index.js` serving the configuration
+  route.
 
 The earlier **dynamic Cordis plugin** (`dshlp-1`, composer.dock + Slot UI)
-was the validation stage. It is stopped; its source is archived under
-`legacy/dynamic-package/`. Decision: the plain-package route won because it
-renders in the original position, persists across restarts, and has no
-host-side file I/O in v1 (phrases are bundled).
+was the validation stage; it was stopped and later removed entirely (its
+source remains available in git history). Decision: the plain-package route
+won because it renders in the original position, persists across restarts,
+and keeps phrase content bundled in the client with zero file I/O (the only
+host-side I/O is the config route, which re-reads one small JSON per
+request).
 
 ## Mechanism
 
@@ -40,9 +43,10 @@ host-side file I/O in v1 (phrases are bundled).
 
 ## Rotation
 
-- Strict alternation `witty (5 s) → tips (10 s) → witty …`, each run starts
-  with a witty phrase; dwell time belongs to the phrase just shown
-  (`setTimeout` chain).
+- Channel set follows `mode`: `all` alternates strictly
+  `witty (5 s) → tips (10 s) → witty …`; `witty` / `tips` fix one channel.
+  Each run starts with a witty phrase; dwell time belongs to the phrase just
+  shown (`setTimeout` chain).
 - No-repeat shuffle: Fisher–Yates decks per channel, reshuffled on
   exhaustion with a first-of-new ≠ last-of-old guard; fresh decks per run
   and per language switch.
@@ -94,6 +98,18 @@ Code edits to `lib/*.js` require a web profile restart (bundle revisions
 only re-enter the module graph through HMR or a restart); config edits do
 not.
 
+## Verification
+
+- `npm test` runs the real bundle in a fake browser environment (94
+  assertions: appearance, alternation cadence, no-repeat full coverage,
+  locale repaint, config modes, cleanup) plus a host route test over the
+  real config file. It caught and fixed the deck-initialization crash before
+  any browser exposure.
+- Installation verified server-side: profile dependency, patch row, bundle
+  route (HTTP 200), boot-manifest entry, and byte-identical served bundle.
+- Visual behavior confirmed by the user on the live page ("页面正常"):
+  original-position replacement, alternation, and the retained clock.
+
 ## History / decisions log
 
 - Content decided after researching Qwen Code (`usePhraseCycler`,
@@ -107,4 +123,5 @@ not.
 - Tuning constants in `lib/client.js` are defaults; the host-served config
   overrides them at runtime.
 - The validation-stage dynamic Cordis plugin (`dshlp-1`) was stopped and then
-  removed entirely; its source is archived under `legacy/dynamic-package/`.
+  removed entirely; its source was dropped from the tree and remains
+  available in git history.
