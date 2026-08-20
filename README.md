@@ -50,6 +50,19 @@ Then add a load row to `~/.dsh/profiles/<profile>/cordis.patch.yml`
 
 Hard-refresh the Web GUI page (⌘/Ctrl+Shift+R).
 
+## Settings panel
+
+The plugin registers a **Loading Phrases** page in the GUI Settings (sidebar
+foot → Settings). From it you can:
+
+- switch `mode` (alternating / witty only / tips only / off), the dwell
+  times, the no-repeat switch, and the language policy;
+- edit the phrase and tip lists (one per line), seeded with the built-in
+  lists — saving materializes the edited lists into the config, an empty
+  list falls back to the built-ins, and **Restore defaults** re-seeds
+  everything;
+- saves apply to the running page immediately (no refresh needed).
+
 ## Configuration
 
 `dsh-loading-phrases.json` at the package root is served by the host half and

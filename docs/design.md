@@ -108,10 +108,10 @@ Code edits to `lib/*.js` require a web profile restart (bundle revisions
 only re-enter the module graph through HMR or a restart); config edits do
 not.
 
-## Settings panel (v3 memo)
+## Settings panel (v3 memo — delivered in v3.0, amended)
 
-A graphical settings panel replaces hand-editing the JSON; it is the front
-door for editing content lists. Design baseline agreed so far:
+A graphical settings page registered in `settings.section` (`id:
+loading-phrases`) implements the materialize-on-save design:
 
 - **Materialize-on-save, not runtime merge.** The panel seeds its list
   editor with the built-in phrases on first open (or with the saved list
@@ -123,28 +123,28 @@ door for editing content lists. Design baseline agreed so far:
   language's key and the runtime falls back to the built-in list; channel
   disabling is expressed through `mode`, never through an empty list.
 - **Restore defaults.** The panel offers an explicit "restore defaults"
-  action that re-seeds the editor from the current built-in lists, so users
-  can opt back into future built-in phrase updates.
-- **Storage layering.** Content lists stay in
-  `dsh-loading-phrases.json` (the panel writes the file through a host
-  method); only preferences (mode, intervals, shuffle, language) belong in
-  the durable `settings` service. The settings document stays free of bulk
-  phrase content.
-- **Propagation (config hot-reload) is resolved together with the panel.**
-  First verify whether the client exposes a subscription surface for
-  settings namespaces (like the `locale` service); if yes, ride it, else
-  build a channel on the panel's save path (host push / SSE). The interim
-  fallback remains "refresh the page", optionally upgraded to "re-read at
-  run start" if needed before the panel lands.
+  action that saves the default section (empty lists, default preferences)
+  and re-seeds the editor from the built-ins.
+- **Propagation.** Saving POSTs the section to the config route and then
+  re-applies it in place (`applySection`: teardown + remount of the rotation
+  fiber) — no refresh, no polling, no SSE.
+
+v3.0 deviation from the original memo: **preferences (mode, intervals,
+shuffle, language) also live in the config file** rather than the `settings`
+service, because the settings-service route (schemastery schema dependency,
+namespace registration, `ctx.settingsScope` mirror plumbing) was deferred.
+The durable `settings` service remains the natural v3.1 upgrade when
+preference separation from content becomes worthwhile.
 
 ## Verification
 
-- `npm test` runs the real bundle in a fake browser environment (100
+- `npm test` runs the real bundle in a fake browser environment (122
   assertions: appearance, alternation cadence, no-repeat full coverage,
   locale repaint, config modes, a11y mirror, selector diagnostics,
-  concurrent lines, cleanup) plus a host route test over the real config
-  file. It caught and fixed the deck-initialization crash before any
-  browser exposure.
+  concurrent lines, panel registration, in-place re-apply, cleanup) plus a
+  host route test (GET/POST save round-trip, validation, disposal) over the
+  real config file. It caught and fixed the deck-initialization crash
+  before any browser exposure.
 - Installation verified server-side: profile dependency, patch row, bundle
   route (HTTP 200), boot-manifest entry, and byte-identical served bundle.
 - Visual behavior confirmed by the user on the live page ("页面正常"):
@@ -171,3 +171,7 @@ door for editing content lists. Design baseline agreed so far:
   cancelled.
 - v2.1 experience patches: aria-label a11y mirror, narrow-screen truncation,
   selector self-diagnostics, and the corresponding test coverage.
+- v3.0 settings panel delivered: settings.section page with materialize-on-
+  save lists, restore defaults, preference controls, and in-place re-apply
+  on save (POST → applySection). Preferences stay in the JSON config for
+  v3.0; the durable `settings` service is deferred to v3.1.
