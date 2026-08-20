@@ -58,8 +58,11 @@ dsh plugin add /绝对路径/dsh-loading-phrases
 
 ## 配置
 
-包根目录的 `dsh-loading-phrases.json` 由 host 半通过 HTTP 路由提供，客户端每次
-页面加载时读取——改配置只需刷新页面，无需重启：
+用户配置位于 `$DSH_HOME/dsh-loading-phrases.json`（通常即
+`~/.dsh/dsh-loading-phrases.json`）——机器本地、所有 profile 共享，插件升级
+不受影响。host 半通过 HTTP 路由提供、客户端每次页面加载读取：改配置刷新页面
+即生效，设置面板保存则立即生效。包根目录的 `dsh-loading-phrases.json` 仅作
+开发期种子，插件不会写入它。
 
 ```json
 {

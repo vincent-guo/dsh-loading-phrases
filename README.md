@@ -65,9 +65,13 @@ foot → Settings). From it you can:
 
 ## Configuration
 
-`dsh-loading-phrases.json` at the package root is served by the host half and
-read by the client on every page load — edits apply on the next refresh, no
-restart needed:
+The user-owned config lives at `$DSH_HOME/dsh-loading-phrases.json` (usually
+`~/.dsh/dsh-loading-phrases.json`) — machine-local and shared by every
+profile, so it survives plugin updates. It is served by the host half and
+read by the client on every page load; edits apply on the next refresh, and
+settings-panel saves apply immediately. The package-root
+`dsh-loading-phrases.json` serves only as a development seed and is never
+written by the plugin.
 
 ```json
 {

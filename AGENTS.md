@@ -25,9 +25,11 @@ route.
   build step) and must stay syntactically valid: run `node --check
   lib/client.js` before committing.
 - `lib/index.js` is a plain ESM host plugin; it registers the config route
-  (`GET` / `POST /plugins/dsh-loading-phrases/config.json`, no-store): GET
-  returns the normalized section (file re-read per request), POST validates
-  and persists the section to the package-root config file.
+  (`GET` / `POST /dsh-loading-phrases/config.json`, no-store): GET returns
+  the normalized section resolved as user file
+  (`$DSH_HOME/dsh-loading-phrases.json`) → package-root dev seed → built-in
+  defaults (re-read per request); POST validates and persists to the
+  user-owned file only — never write to the package directory.
 - The client registers the settings page through `settings.section`
   (`id: loading-phrases`, locale-thunk nav label); saving POSTs the section
   and re-applies it in place through the same `applySection` seam the

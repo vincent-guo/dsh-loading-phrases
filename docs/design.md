@@ -81,12 +81,14 @@ Single source of truth: `src/data/witty.json` / `src/data/tips.json`;
 
 ## Configuration (implemented)
 
-The host half registers `GET /plugins/dsh-loading-phrases/config.json`
-(`kind: exact`, `Cache-Control: no-store`) and reads
-`dsh-loading-phrases.json` from the package root on **every request**, so
-config edits apply on the next page refresh without a restart. The client
-fetches it at `apply` time and falls back to built-in defaults on any
-failure.
+The host half registers `GET`/`POST /dsh-loading-phrases/config.json`
+(`kind: exact`, `Cache-Control: no-store`, injected via `ctx.inject` so it
+lands regardless of mount order). GET resolves the config in order — the
+user-owned `$DSH_HOME/dsh-loading-phrases.json`, then the package-root
+development seed, then built-in defaults — and re-reads on **every
+request**, so file edits apply on the next page refresh. POST validates and
+writes the user-owned file only. The client fetches at `apply` time and
+falls back to built-in defaults on any failure.
 
 ```json
 {
