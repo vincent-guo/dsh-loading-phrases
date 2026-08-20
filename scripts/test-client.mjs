@@ -10,6 +10,8 @@
 //   - strict alternation witty (5 s) -> tips (10 s) -> witty ...
 //   - no-repeat shuffle: full coverage per channel, no back-to-back repeats
 //   - locale switch repaints immediately with the new language's lists
+//   - config support: mode tips / off, custom intervals, per-language
+//     overrides, forced language
 //   - element removal clears the attribute and timers
 //   - cleanup disconnects the observer and removes the style tag
 //
@@ -125,6 +127,7 @@ function advance(ms) {
   flushMicro()
 }
 function triggerMutation() {
+  if (observerInstance === null) return
   observerInstance.cb()
   flushMicro()
 }
@@ -159,12 +162,26 @@ const ctx = {
   },
 }
 
+// Config route stub: per-scenario `configImpl` decides the JSON response.
+let configImpl = null
+const fetchStub = () => {
+  if (configImpl === null) throw new Error('no config route in fake env')
+  return Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve(configImpl),
+  })
+}
+
 function reset() {
   els = []
   styleTag.removed = false
+  styleTag.textContent = ''
+  styleTag.attrs.clear()
+  observerInstance = null
   active = 'en'
   disposers = []
   localeSubs.clear()
+  configImpl = null
   timeouts.clear()
   microtasks.length = 0
   now = 0
@@ -178,17 +195,18 @@ const runner = new Function(
   'setTimeout',
   'clearTimeout',
   'queueMicrotask',
+  'fetch',
   `${bundle}\n;return 0`,
 )
-runner(win, document, MutationObserver, setTimeout, clearTimeout, queueMicrotask)
+runner(win, document, MutationObserver, setTimeout, clearTimeout, queueMicrotask, fetchStub)
 assert(loadedId === 'dsh-loading-phrases', 'bundle registers id dsh-loading-phrases')
 assert(typeof factory === 'function', 'factory captured')
 const plugin = factory()
 assert(typeof plugin.apply === 'function', 'exports.apply is a function')
 
-// --- scenario 1: appearance, first phrase, alternation -------------------------
+// --- scenario 1: defaults, appearance, first phrase, alternation ---------------
 reset()
-plugin.apply(ctx)
+await plugin.apply(ctx)
 assert(styleTag.attrs.get('data-plugin-css') === 'dsh-loading-phrases', 'style tag installed with plugin id')
 assert(styleTag.textContent.includes('attr(data-dshlp)'), 'CSS carries attr() phrase carrier')
 
@@ -221,10 +239,10 @@ assert(witty.zh.includes(zhFirst), `locale switch repaints immediately with a zh
 
 const zhWittySeen = [zhFirst]
 for (let i = 1; i < witty.zh.length; i++) {
-  advance(5000) // current witty dwell
+  advance(5000)
   const t = el.getAttribute('data-dshlp')
   assert(tips.zh.includes(t), `zh tip at cycle ${i}`)
-  advance(10000) // tip dwell
+  advance(10000)
   const w = el.getAttribute('data-dshlp')
   assert(witty.zh.includes(w), `zh witty at cycle ${i}`)
   zhWittySeen.push(w)
@@ -240,8 +258,54 @@ assert(el.getAttribute('data-dshlp') === undefined, 'attribute removed when the 
 assert(timeouts.size === 0, 'rotation timer cleared on removal')
 
 for (const dispose of disposers) dispose()
-assert(observerInstance.disconnected, 'observer disconnected on cleanup')
+assert(observerInstance !== null && observerInstance.disconnected, 'observer disconnected on cleanup')
 assert(styleTag.removed, 'style tag removed on cleanup')
+
+// --- scenario 4: config mode=tips -------------------------------------------------
+reset()
+configImpl = { mode: 'tips' }
+await plugin.apply(ctx)
+const elTips = new FakeEl()
+els.push(elTips)
+triggerMutation()
+const t1 = elTips.getAttribute('data-dshlp')
+assert(tips.en.includes(t1), `mode tips: first phrase is a tip (got "${t1}")`)
+advance(10000)
+const t2 = elTips.getAttribute('data-dshlp')
+assert(tips.en.includes(t2) && t2 !== t1, 'mode tips: next phrase is a different tip')
+advance(10000)
+assert(tips.en.includes(elTips.getAttribute('data-dshlp')), 'mode tips: witty never appears')
+
+// --- scenario 5: config mode=off --------------------------------------------------
+reset()
+configImpl = { mode: 'off' }
+await plugin.apply(ctx)
+assert(styleTag.textContent === '', 'mode off: no style injected')
+assert(observerInstance === null, 'mode off: no observer installed')
+const elOff = new FakeEl()
+els.push(elOff)
+triggerMutation()
+assert(elOff.getAttribute('data-dshlp') === undefined, 'mode off: status line untouched')
+
+// --- scenario 6: custom interval + per-language override ---------------------------
+reset()
+configImpl = { mode: 'witty', wittyIntervalMs: 7000, phrases: { en: ['CUSTOM-ONLY'] } }
+await plugin.apply(ctx)
+const elC = new FakeEl()
+els.push(elC)
+triggerMutation()
+assert(elC.getAttribute('data-dshlp') === 'CUSTOM-ONLY', 'override list replaces built-in for that language')
+advance(7000)
+assert(elC.getAttribute('data-dshlp') === 'CUSTOM-ONLY', 'single-item override stays stable across ticks')
+
+// --- scenario 7: forced language -----------------------------------------------------
+reset()
+configImpl = { mode: 'witty', language: 'zh' }
+await plugin.apply(ctx)
+const elLang = new FakeEl()
+els.push(elLang)
+triggerMutation()
+assert(witty.zh.includes(elLang.getAttribute('data-dshlp')), 'forced language zh wins over the en GUI locale')
 
 console.log(failures === 0 ? '\nALL CLIENT CHECKS PASSED' : `\n${failures} CHECK(S) FAILED`)
 process.exit(failures === 0 ? 0 : 1)
