@@ -98,6 +98,35 @@ Code edits to `lib/*.js` require a web profile restart (bundle revisions
 only re-enter the module graph through HMR or a restart); config edits do
 not.
 
+## Settings panel (v3 memo)
+
+A graphical settings panel replaces hand-editing the JSON; it is the front
+door for editing content lists. Design baseline agreed so far:
+
+- **Materialize-on-save, not runtime merge.** The panel seeds its list
+  editor with the built-in phrases on first open (or with the saved list
+  once one exists); saving writes the complete edited list back to the
+  config, and the runtime keeps the existing semantics — a non-empty config
+  list replaces the built-in list, no merge logic at runtime. The earlier
+  "append mode" idea is cancelled in favor of this.
+- **Empty means fall back to default.** Saving an empty list removes that
+  language's key and the runtime falls back to the built-in list; channel
+  disabling is expressed through `mode`, never through an empty list.
+- **Restore defaults.** The panel offers an explicit "restore defaults"
+  action that re-seeds the editor from the current built-in lists, so users
+  can opt back into future built-in phrase updates.
+- **Storage layering.** Content lists stay in
+  `dsh-loading-phrases.json` (the panel writes the file through a host
+  method); only preferences (mode, intervals, shuffle, language) belong in
+  the durable `settings` service. The settings document stays free of bulk
+  phrase content.
+- **Propagation (config hot-reload) is resolved together with the panel.**
+  First verify whether the client exposes a subscription surface for
+  settings namespaces (like the `locale` service); if yes, ride it, else
+  build a channel on the panel's save path (host push / SSE). The interim
+  fallback remains "refresh the page", optionally upgraded to "re-read at
+  run start" if needed before the panel lands.
+
 ## Verification
 
 - `npm test` runs the real bundle in a fake browser environment (94
@@ -125,3 +154,7 @@ not.
 - The validation-stage dynamic Cordis plugin (`dshlp-1`) was stopped and then
   removed entirely; its source was dropped from the tree and remains
   available in git history.
+- v3 panel baseline recorded (see "Settings panel (v3 memo)"): custom phrase
+  editing materializes on save instead of merging at runtime; an empty list
+  falls back to built-in defaults; the earlier "append mode" idea is
+  cancelled.
