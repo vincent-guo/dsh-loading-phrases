@@ -1,22 +1,55 @@
 # dsh-loading-phrases
 
-一个 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)
-Web GUI 插件：把自带的 `Deep diving...` 运行状态文案替换为轮换显示的
-**诙谐俏皮话**与**实用操作提示**。
+把 DeepSeek Harness Web GUI 的 **"Deep diving..."** 运行状态行替换为交替轮换的
+**诙谐俏皮话**与**实用操作提示**——保留原位置、原渐变 shimmer 效果和已运行
+时长时钟。
 
-## 功能
+[English](README.md)
 
-当会话处于运行中（即原文案 `Deep diving...` 出现的同一条件）时：
+## 行为
 
-- 隐藏原始状态行；
-- 在输入框下方的读数区显示单行内容，严格交替轮换：俏皮话 5 秒 → 提示 10
-  秒，如此往复，每轮从俏皮话开始；
-- 轮换采用无重复 shuffle（Fisher–Yates 洗牌，抽完重洗）——不会连续出现同一
-  条，一轮内保证全部展示一遍；
-- 运行超过 15 秒后，短语旁显示已运行时长，与原版时钟行为一致；
-- 运行结束瞬间整行消失。
+当一轮运行进行中（即原文案出现的同一条件）时：
 
-语言跟随 GUI 界面语言（`zh` → 中文，否则英文，未知语言回退英文）。
+- 原文 "Deep diving..." 让位于**同一位置**的轮换文案，沿用同款渐变 shimmer
+  配方渲染；
+- 严格交替：俏皮话 5 秒 → 提示 10 秒 → 俏皮话……每一轮从俏皮话开始；
+- 轮换为无重复 shuffle（Fisher–Yates 洗牌，抽完重洗）——不会连续重复，一轮
+  内每条都展示一次；
+- 15 秒后出现的耗时时钟与原来完全一致；
+- 跟随界面语言：`zh` → 中文列表，否则英文。
+
+天然失败让路：原文案只会在插件脚本存活期间被隐藏，任何故障都会自动降级回
+产品原文。
+
+## 安装
+
+```bash
+dsh plugin add /绝对路径/dsh-loading-phrases
+```
+
+（也可在 profile 目录内直接运行 `corepack pnpm add
+/绝对路径/dsh-loading-phrases`）
+
+然后在 `~/.dsh/profiles/<profile>/cordis.patch.yml` 中加入加载行（文件不存在
+则新建）：
+
+```yaml
+- insert:
+    - id: loading-phrases
+      name: dsh-loading-phrases
+```
+
+硬刷新 Web GUI 页面（⌘/Ctrl+Shift+R）。
+
+## 自定义短语
+
+1. 编辑 `src/data/witty.json` 和/或 `src/data/tips.json`（`en` / `zh` 是独立
+   内容，非逐条互译）；
+2. 运行 `node scripts/sync-data.js`（或 `npm run sync`）重新生成
+   `lib/client.js` 中的数据块，再 `npm run check`；
+3. 硬刷新页面。若命中旧 bundle 缓存，重启 web profile 进程。
+
+轮换调参（停留时长、shuffle）在 `lib/client.js` 顶部的 `TUNING` 区。
 
 ## 内容
 
@@ -25,52 +58,23 @@ Web GUI 插件：把自带的 `Deep diving...` 运行状态文案替换为轮换
 | 俏皮话 | 49 | 24 | 源自 Qwen Code web-shell 列表（Apache-2.0，见 `NOTICE.md`） |
 | 提示 | 40 | 40 | 对照 DSH 真实界面行为撰写 |
 
-其中一条俏皮话按 DSH 输入框的真实快捷键做了适配
-（`Ctrl+J` → `Shift+Enter`）。
-
-## 配置
-
-会话工作区下的 `dsh-loading-phrases.json`：
-
-```json
-{
-  "loadingPhrases": {
-    "mode": "all",
-    "wittyIntervalMs": 5000,
-    "tipsIntervalMs": 10000,
-    "shuffle": true,
-    "language": "auto",
-    "phrases": { "en": [], "zh": [] },
-    "tips": { "en": [], "zh": [] }
-  }
-}
-```
-
-| 键 | 取值 | 默认 | 含义 |
-| --- | --- | --- | --- |
-| `mode` | `tips` / `witty` / `all` / `off` | `all` | `off` 时插件完全让路，原始 `Deep diving...` 原样显示 |
-| `wittyIntervalMs` | 数字 | `5000` | 俏皮话停留时长 |
-| `tipsIntervalMs` | 数字 | `10000` | 提示停留时长 |
-| `shuffle` | 布尔 | `true` | 无重复轮换；`false` 为有放回随机 |
-| `language` | `auto` / `en` / `zh` | `auto` | 强制语言，否则跟随界面语言 |
-| `phrases`、`tips` | `{ "en": [...], "zh": [...] }` | 空 | 按语言覆盖；非空列表替换该语言的内置列表 |
-
-修改后刷新页面生效。
-
 ## 仓库结构
 
 ```
-dsh-loading-phrases.json   默认配置
-src/data/witty.json        内置俏皮话（中英）
-src/data/tips.json         内置提示（中英）
-src/plugin/host.js         Cordis Host 半（读配置与数据，提供 bootstrap）
-src/plugin/client.js       Cordis Client 半（dock UI、轮换引擎）
-docs/design.md             设计基线与决策记录
+lib/index.js        host 半（v1 为空壳；v2 计划读配置文件）
+lib/client.js       客户端 bundle（DOM 定位、轮换引擎、生成的数据块）
+src/data/*.json     短语内容（唯一事实来源）
+scripts/sync-data.js  重新生成 lib/client.js 中的数据块
+docs/design.md      设计基线与决策记录
+legacy/             验证阶段的动态 Cordis 插件（仅存档）
 ```
 
-完整设计基线与待定项见 `docs/design.md`。
+## 路线图
 
-## 状态
+- v2 —— `dsh-loading-phrases.json` 配置（mode、间隔、shuffle、按语言覆盖），
+  由 host 半读取。
+- v3 —— 短语管理设置面板。
 
-已作为会话内动态 Cordis 插件验证。持久化安装（agent preset / host 组合）
-已规划、待定。
+## 许可证
+
+[MIT](./LICENSE)

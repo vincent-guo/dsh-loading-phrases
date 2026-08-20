@@ -1,78 +1,73 @@
 # dsh-loading-phrases — Design Baseline
 
 A plugin for the DeepSeek Harness Web GUI that replaces the shipped
-`Deep diving...` turn-status text with rotating witty loading phrases and
-informative tips.
+`Deep diving...` running status with rotating witty loading phrases and
+informative tips, in the original position.
 
-## Status
+## Delivery route (final)
 
-Work in progress. Decisions below are locked unless marked `PENDING`.
+**Plain-package plugin**, mounted through the DSH profile:
 
-## Findings from the harness (verified against source)
+- `dsh plugin add <path>` (or `corepack pnpm add <path>` in the profile),
+- a load row in `~/.dsh/profiles/<profile>/cordis.patch.yml`,
+- client bundle registered through `window.__ModuleLoader__.load` (full
+  browser environment), host half `lib/index.js` (stub in v1).
 
-- The `Deep diving...` line is rendered by the `TurnStatus` component inside
-  `ChatView` (`packages/client/ui-conversation`), hard-coded, and **not
-  inside any Slot**. It is gated by `running` from the session's
-  `ConversationSnapshot`, and appends an elapsed-time clock after 15 s.
-- The chat scrollport has no seat at that position. The nearest sanctioned
-  seats are `conversation.composer.dock` (ambient readout band under the
-  composer, where the shipped stats line lives) and
-  `conversation.input.dock` (full-width rows above the composer). Both expose
-  `useSession` / `useSessions` standard props and the `InputZone` owner share.
-- GUI language comes from the client `locale` service:
-  `getLocale().active` is `'zh'` or `'en'`; `locale/change` notifies switches.
-- Dynamic Client plugins may ship CSS through `styles.insert(css)`; DOM
-  manipulation and hard-coded product selectors are not sanctioned. The
-  shipped status row can only be hidden via a CSS-module-derived selector
-  (`[class*="turnStatus"]`, built as `[hash]_[local]`).
+The earlier **dynamic Cordis plugin** (`dshlp-1`, composer.dock + Slot UI)
+was the validation stage. It is stopped; its source is archived under
+`legacy/dynamic-package/`. Decision: the plain-package route won because it
+renders in the original position, persists across restarts, and has no
+host-side file I/O in v1 (phrases are bundled).
 
-## Content
+## Mechanism
 
-| Channel | EN | ZH |
-| --- | --- | --- |
-| Witty phrases | 49 entries, derived from Qwen Code web-shell `WITTY_LOADING_PHRASES_EN` | 24 entries, Qwen Code `WITTY_LOADING_PHRASES_ZH` |
-| Tips | 30–50 entries, written for DSH (draft, `PENDING` review) | 30–50 entries, semantic translation of the EN set |
+- The status line is located with the stable attribute selector
+  `[data-chat-flow] > [role="status"][aria-live="polite"]` — no hashed
+  CSS-module class names.
+- The original "Deep diving..." text node is collapsed with `font-size: 0`;
+  the phrase is rendered by `::before { content: attr(data-dshlp) }` using
+  the same `--dsw-static-deepseek-*` gradient recipe and a local shimmer
+  keyframes (the product keyframes may be hashed).
+- The shipped elapsed clock `<span>` keeps its own font shorthand and stays
+  intact.
+- `MutationObserver` on `document.documentElement` tracks status-line
+  appear/disappear (run start/end), one rotation timer per element (multiple
+  sessions supported); scans are coalesced through `queueMicrotask`.
+- **Fail-safe by construction**: `data-dshlp` is only set while the script is
+  alive, so any failure degrades back to the original product text.
+- Cleanup: observer disconnect, timers cleared, attributes removed, style tag
+  removed — all inside a `ctx.effect` disposer.
 
-Adjustments applied to the derived lists:
+## Rotation
 
-- stripped stray trailing whitespace (`Shipping awesomeness... `);
-- `New line? That's Ctrl+J.` adapted to DSH's real composer shortcut:
-  `New line? That's Shift+Enter.`.
-
-Attribution: phrases are derived from
-`google-gemini/gemini-cli` / `QwenLM/qwen-code` (Apache-2.0); see `NOTICE.md`.
-
-## Display
-
-- Single line, one phrase at a time.
-- Display timing follows the original `Deep diving...` exactly: shown while
-  the session is `running`, hidden otherwise.
-- `all` mode: strict alternation `witty (5 s) → tips (10 s) → witty (5 s) → …`,
-  each run starts with a witty phrase.
-- `witty` mode: witty only, every 5 s. `tips` mode: tips only, every 10 s.
-- Rotation is a no-repeat shuffle (Fisher–Yates deck, reshuffle on
-  exhaustion, fresh deck per run). No consecutive duplicates.
-
-`PENDING` — placement (blocked on user decision):
-
-- A. Hide the shipped row entirely; render the phrase line in
-  `conversation.composer.dock` (always visible during runs), replicating the
-  shipped ≥15 s elapsed clock.
-- B. Hide only the shipped text, keep the shipped clock in the scrollport;
-  phrase line in `conversation.composer.dock`.
-- C. Patch the harness to Slot-ify `TurnStatus` for exact-position
-  replacement (harness modification, out of plugin scope).
+- Strict alternation `witty (5 s) → tips (10 s) → witty …`, each run starts
+  with a witty phrase; dwell time belongs to the phrase just shown
+  (`setTimeout` chain).
+- No-repeat shuffle: Fisher–Yates decks per channel, reshuffled on
+  exhaustion with a first-of-new ≠ last-of-old guard; fresh decks per run
+  and per language switch.
+- If a channel's list is empty, it is skipped; if both are empty, the
+  attribute is removed and the original text returns.
 
 ## Language
 
-- Follow the GUI locale from the `locale` service (`zh` → ZH table,
-  anything else → EN table; fallback EN).
-- `zh`/`en` lists are independent, not literal translations.
+- Follows the GUI `locale` service (`active` is `zh` / `en`; unknown locales
+  fall back to the English lists). Language switches reset decks and repaint
+  immediately.
 
-## Configuration
+## Content
 
-`dsh-loading-phrases.json` (Host reads via the `fs` service, passes to the
-Client through the Package-private RPC):
+| Channel | EN | ZH | Source |
+| --- | --- | --- | --- |
+| Witty phrases | 49 | 24 | Derived from Qwen Code web-shell lists (Apache-2.0, `NOTICE.md`); one entry adapted to DSH's real composer shortcut (`Ctrl+J` → `Shift+Enter`) |
+| Tips | 40 | 40 | Written against verified DSH UI behavior |
+
+Single source of truth: `src/data/witty.json` / `src/data/tips.json`;
+`scripts/sync-data.js` regenerates the data blocks in `lib/client.js`.
+
+## Configuration (v2, planned)
+
+`dsh-loading-phrases.json` read by the host half:
 
 ```json
 {
@@ -88,21 +83,17 @@ Client through the Package-private RPC):
 }
 ```
 
-- `mode`: `tips` | `witty` | `all` (default) | `off` — `off` yields entirely
-  and the original `Deep diving...` stays untouched.
-- `phrases` / `tips`: per-language overrides; empty arrays mean built-ins.
-- v1 reads once at plugin apply; hot reload is a later iteration.
+`mode`: `tips` | `witty` | `all` | `off` (off = yield entirely, original
+text untouched). Per-language overrides replace built-ins per language.
 
-## Lifecycle (PENDING)
+## History / decisions log
 
-- Dynamic Cordis plugin first, to validate on the real page.
-- Persistence strategy (agent preset / host composition) is decided after
-  validation. A settings-panel UI may follow once the plugin is durable
-  (the dynamic-plugin rules forbid durable settings).
-
-## Repository conventions
-
-- Code, comments, commits: English (Chinese allowed where nuance requires).
-- `README.md` in English plus a `README.zh-CN.md` mirror; `AGENTS.md` in
-  English only.
-- Conventional commits, one milestone per commit.
+- Content decided after researching Qwen Code (`usePhraseCycler`,
+  web-shell `loadingPhrases.ts`) and Gemini CLI (`usePhraseCycler`,
+  `INFORMATIVE_TIPS` / `WITTY_LOADING_PHRASES`, `ui.loadingPhrases`
+  settings).
+- Position options A (composer.dock, validated), B (dock + kept clock),
+  C (harness slotification), D (pure-CSS in original position) — **D won**
+  after the user's `dsh-witty-loader` proved the mechanism; merge decision:
+  deliver in this repository as a plain package.
+- Tuning constants live in `lib/client.js` until v2 config lands.

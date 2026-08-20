@@ -1,81 +1,86 @@
 # dsh-loading-phrases
 
-A plugin for the [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)
-Web GUI that replaces the shipped `Deep diving...` running status with rotating
-**witty loading phrases** and **practical tips**.
+Replace the **"Deep diving..."** running status in the DeepSeek Harness Web
+GUI with alternating **witty phrases** and **practical tips** — in the
+original position, with the original shimmer effect and the elapsed clock
+intact.
 
-## What it does
+[中文说明](README.zh-CN.md)
 
-While a session is running (the same condition under which the original
-`Deep diving...` status appears):
+## Behavior
 
-- the original status row is hidden;
-- a single line in the ambient readout band under the composer shows, in
-  strict alternation: a witty phrase for 5 s, then a tip for 10 s, and so on,
-  each run starting with a witty phrase;
+While a turn is running (the same condition under which the original status
+line appears):
+
+- the original "Deep diving..." text gives way to a rotating line in the
+  **same place**, rendered with the same gradient-shimmer recipe;
+- strict alternation: witty phrase for 5 s → tip for 10 s → witty phrase…
+  each run starts with a witty phrase;
 - rotation is a no-repeat shuffle (Fisher–Yates decks, reshuffled on
-  exhaustion) — no phrase repeats back-to-back and every entry is shown once
-  per cycle;
-- an elapsed-time clock appears next to the phrase after 15 s, matching the
-  original status behavior;
-- the line disappears the moment the run ends.
+  exhaustion) — no back-to-back repeats, every entry shown once per cycle;
+- the 15-second elapsed clock keeps working exactly as before;
+- the line follows the GUI locale: `zh` → Chinese lists, otherwise English.
 
-Language follows the GUI locale (`zh` → Chinese, otherwise English; unknown
-locales fall back to English).
+Fail-safe by construction: the original text is hidden only while the
+plugin's script is alive. Any failure degrades back to the product's own
+status text.
+
+## Install
+
+```bash
+dsh plugin add /absolute/path/to/dsh-loading-phrases
+```
+
+(or, inside the profile directory: `corepack pnpm add
+/absolute/path/to/dsh-loading-phrases`)
+
+Then add a load row to `~/.dsh/profiles/<profile>/cordis.patch.yml`
+(create the file if absent):
+
+```yaml
+- insert:
+    - id: loading-phrases
+      name: dsh-loading-phrases
+```
+
+Hard-refresh the Web GUI page (⌘/Ctrl+Shift+R).
+
+## Customizing phrases
+
+1. Edit `src/data/witty.json` and/or `src/data/tips.json`
+   (`en` / `zh` arrays are independent content, not translations).
+2. Run `node scripts/sync-data.js` (or `npm run sync`) to regenerate the
+   data blocks in `lib/client.js`, then `npm run check`.
+3. Hard-refresh the page. If the bundle is cached, restart the web profile
+   process.
+
+Rotation tuning (dwell times, shuffle) lives in the `TUNING` section at the
+top of `lib/client.js`.
 
 ## Content
 
 | Channel | EN | ZH | Source |
 | --- | --- | --- | --- |
 | Witty phrases | 49 | 24 | Derived from Qwen Code web-shell lists (Apache-2.0, see `NOTICE.md`) |
-| Tips | 40 | 40 | Written for DSH against its real UI behavior |
-
-One derived phrase was adapted to DSH's actual composer shortcut
-(`Ctrl+J` → `Shift+Enter`).
-
-## Configuration
-
-`dsh-loading-phrases.json` in the session workspace:
-
-```json
-{
-  "loadingPhrases": {
-    "mode": "all",
-    "wittyIntervalMs": 5000,
-    "tipsIntervalMs": 10000,
-    "shuffle": true,
-    "language": "auto",
-    "phrases": { "en": [], "zh": [] },
-    "tips": { "en": [], "zh": [] }
-  }
-}
-```
-
-| Key | Values | Default | Meaning |
-| --- | --- | --- | --- |
-| `mode` | `tips` / `witty` / `all` / `off` | `all` | `off` yields entirely: the original `Deep diving...` stays untouched |
-| `wittyIntervalMs` | number | `5000` | Dwell time for a witty phrase |
-| `tipsIntervalMs` | number | `10000` | Dwell time for a tip |
-| `shuffle` | boolean | `true` | No-repeat rotation; `false` = random with replacement |
-| `language` | `auto` / `en` / `zh` | `auto` | Force a language instead of following the GUI locale |
-| `phrases`, `tips` | `{ "en": [...], "zh": [...] }` | empty | Per-language overrides; a non-empty list replaces the built-in list for that language |
-
-Changes apply on reload.
+| Tips | 40 | 40 | Written against real DSH UI behavior |
 
 ## Repository layout
 
 ```
-dsh-loading-phrases.json   default configuration
-src/data/witty.json        built-in witty phrases (en/zh)
-src/data/tips.json         built-in tips (en/zh)
-src/plugin/host.js         Cordis Host half (reads config + data, serves bootstrap)
-src/plugin/client.js       Cordis Client half (dock UI, rotation engine)
-docs/design.md             design baseline and decisions
+lib/index.js        host half (stub in v1; config file planned for v2)
+lib/client.js       client bundle (DOM target, rotation engine, generated data)
+src/data/*.json     phrase/tips content (single source of truth)
+scripts/sync-data.js  regenerates the data blocks in lib/client.js
+docs/design.md      design baseline and decisions
+legacy/             validation-stage dynamic Cordis package (reference only)
 ```
 
-See `docs/design.md` for the full design baseline and open items.
+## Roadmap
 
-## Status
+- v2 — `dsh-loading-phrases.json` config (mode, intervals, shuffle,
+  per-language overrides) read by the host half.
+- v3 — settings panel for phrase management.
 
-Validated as an in-session dynamic Cordis plugin. A durable installation
-(agent preset / host composition) is planned but not yet decided.
+## License
+
+[MIT](./LICENSE)
