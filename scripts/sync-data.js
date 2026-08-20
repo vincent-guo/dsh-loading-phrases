@@ -25,9 +25,9 @@ function block(name, data) {
     })
     .join('\n')
   return [
-    `    // ===DATA-${name}-START===`,
+    `// ===DATA-${name}-START===`,
     `    const ${name} = {\n${inner}\n    };`,
-    `    // ===DATA-${name}-END===`,
+    `// ===DATA-${name}-END===`,
   ].join('\n')
 }
 
