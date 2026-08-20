@@ -2,19 +2,30 @@
 //
 // Imports the real lib/index.js (plain ESM host plugin) with a fake cordis
 // ctx whose `webServer` captures the registration, then exercises the GET
-// and POST route handlers against the real package-root config file (the
-// file is backed up and restored around the write test) and checks
-// lifecycle.
+// and POST route handlers. DSH_HOME is pointed at a temp directory so the
+// write test lands in a scratch user file, never in the real home dir or
+// the package-root development seed; the temp home is removed at the end.
 //
 // Usage: node scripts/test-host.mjs
 
-import { readFileSync, writeFileSync } from 'node:fs'
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+} from 'node:fs'
+import { tmpdir } from 'node:os'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
-const configPath = join(root, 'dsh-loading-phrases.json')
+const devConfigPath = join(root, 'dsh-loading-phrases.json')
+
+// Isolate the user-config location before the host module resolves paths.
+const tmpHome = mkdtempSync(join(tmpdir(), 'dshlp-home-'))
+process.env.DSH_HOME = tmpHome
 const { apply } = await import(join(root, 'lib/index.js'))
+const userConfigPath = join(tmpHome, 'dsh-loading-phrases.json')
 
 let failures = 0
 function assert(cond, msg) {
@@ -92,8 +103,9 @@ async function flush() {
   await new Promise((resolve) => queueMicrotask(resolve))
 }
 
-// --- GET reflects the on-disk defaults ------------------------------------------
+// --- GET falls back to the development seed when no user file exists ------------
 {
+  assert(existsSync(userConfigPath) === false, 'no user config file before the first save')
   const res = makeRes()
   route.handler(makeReq('GET'), res)
   assert(res.statusCode === 200, 'GET answers 200')
@@ -101,50 +113,48 @@ async function flush() {
   assert(res.headers['Cache-Control'] === 'no-store', 'config is never cached')
 
   const body = JSON.parse(res.body)
-  assert(body.mode === 'all', `default mode from repo config file (got ${body.mode})`)
-  assert(body.wittyIntervalMs === 5000 && body.tipsIntervalMs === 10000, 'default intervals from repo config file')
+  assert(body.mode === 'all', `default mode from the dev seed file (got ${body.mode})`)
+  assert(body.wittyIntervalMs === 5000 && body.tipsIntervalMs === 10000, 'default intervals from the dev seed file')
   assert(body.shuffle === true, 'shuffle enabled by default')
   assert(body.language === 'auto', 'language auto by default')
   assert(Array.isArray(body.phrases?.en) && Array.isArray(body.tips?.zh), 'override slots present in payload')
 }
 
-// --- POST persists and GET reflects the saved section ----------------------------
+// --- POST writes the USER file; GET then reflects it ------------------------------
 {
-  const original = readFileSync(configPath, 'utf-8')
-  try {
-    const res = makeRes()
-    route.handler(
-      makeReq(
-        'POST',
-        JSON.stringify({
-          mode: 'tips',
-          wittyIntervalMs: 6000,
-          tipsIntervalMs: 12000,
-          shuffle: false,
-          language: 'zh',
-          phrases: { en: ['One'], zh: [] },
-          tips: { en: [], zh: ['提示一'] },
-        }),
-      ),
-      res,
-    )
-    await flush()
-    assert(res.statusCode === 200, 'POST answers 200')
-    const body = JSON.parse(res.body)
-    assert(body.ok === true, 'POST reports ok')
+  const res = makeRes()
+  route.handler(
+    makeReq(
+      'POST',
+      JSON.stringify({
+        mode: 'tips',
+        wittyIntervalMs: 6000,
+        tipsIntervalMs: 12000,
+        shuffle: false,
+        language: 'zh',
+        phrases: { en: ['One'], zh: [] },
+        tips: { en: [], zh: ['提示一'] },
+      }),
+    ),
+    res,
+  )
+  await flush()
+  assert(res.statusCode === 200, 'POST answers 200')
+  const body = JSON.parse(res.body)
+  assert(body.ok === true, 'POST reports ok')
 
-    const onDisk = JSON.parse(readFileSync(configPath, 'utf-8'))
-    assert(onDisk.loadingPhrases.mode === 'tips', 'POST writes the saved mode to disk')
-    assert(onDisk.loadingPhrases.phrases.en[0] === 'One', 'POST writes per-language lists to disk')
+  assert(existsSync(userConfigPath), 'POST creates the user config file under DSH_HOME')
+  const onDisk = JSON.parse(readFileSync(userConfigPath, 'utf-8'))
+  assert(onDisk.loadingPhrases.mode === 'tips', 'POST writes the saved mode to the user file')
+  assert(onDisk.loadingPhrases.phrases.en[0] === 'One', 'POST writes per-language lists to the user file')
+  const devSeed = JSON.parse(readFileSync(devConfigPath, 'utf-8'))
+  assert(devSeed.loadingPhrases.mode === 'all', 'the development seed file is never written')
 
-    const getRes = makeRes()
-    route.handler(makeReq('GET'), getRes)
-    const got = JSON.parse(getRes.body)
-    assert(got.mode === 'tips' && got.language === 'zh', 'GET reflects the saved section')
-    assert(got.shuffle === false, 'GET reflects the saved shuffle')
-  } finally {
-    writeFileSync(configPath, original)
-  }
+  const getRes = makeRes()
+  route.handler(makeReq('GET'), getRes)
+  const got = JSON.parse(getRes.body)
+  assert(got.mode === 'tips' && got.language === 'zh', 'GET reflects the saved user section')
+  assert(got.shuffle === false, 'GET reflects the saved shuffle')
 }
 
 // --- invalid POST body is rejected with 400 ---------------------------------------
@@ -160,5 +170,6 @@ async function flush() {
 for (const dispose of disposers) dispose()
 assert(routeDisposed, 'route disposer runs on plugin disposal')
 
+rmSync(tmpHome, { recursive: true, force: true })
 console.log(failures === 0 ? '\nALL HOST CHECKS PASSED' : `\n${failures} CHECK(S) FAILED`)
 process.exit(failures === 0 ? 0 : 1)
