@@ -1,6 +1,6 @@
 {
   "name": "dsh-loading-phrases",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Replace the 'Deep diving...' running status in the DeepSeek Harness Web GUI with alternating witty phrases and practical tips.",
   "type": "module",
   "main": "lib/index.js",
@@ -15,7 +15,7 @@
   "scripts": {
     "sync": "node scripts/sync-data.js",
     "check": "node --check lib/client.js && node --check lib/index.js",
-    "test": "node scripts/test-client.mjs"
+    "test": "node scripts/test-client.mjs && node scripts/test-host.mjs"
   },
   "dsh": {
     "client": {
