@@ -47,7 +47,8 @@ dsh plugin add /绝对路径/dsh-loading-phrases
    内容，非逐条互译）；
 2. 运行 `node scripts/sync-data.js`（或 `npm run sync`）重新生成
    `lib/client.js` 中的数据块，再 `npm run check`；
-3. 硬刷新页面。若命中旧 bundle 缓存，重启 web profile 进程。
+3. 硬刷新页面。若仍是旧内容，重启 web profile 进程——bundle 修订只有经 HMR
+   或重启才会重新进入模块图谱。
 
 轮换调参（停留时长、shuffle）在 `lib/client.js` 顶部的 `TUNING` 区。
 

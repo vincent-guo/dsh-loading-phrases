@@ -51,8 +51,9 @@ Hard-refresh the Web GUI page (⌘/Ctrl+Shift+R).
    (`en` / `zh` arrays are independent content, not translations).
 2. Run `node scripts/sync-data.js` (or `npm run sync`) to regenerate the
    data blocks in `lib/client.js`, then `npm run check`.
-3. Hard-refresh the page. If the bundle is cached, restart the web profile
-   process.
+3. Hard-refresh the page. If the old content persists, restart the web
+   profile process — bundle revisions only re-enter the module graph through
+   HMR or a restart.
 
 Rotation tuning (dwell times, shuffle) lives in the `TUNING` section at the
 top of `lib/client.js`.
