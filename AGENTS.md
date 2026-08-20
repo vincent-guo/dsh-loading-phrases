@@ -57,6 +57,11 @@ route.
   `::before { content: attr(data-dshlp) }`. The attribute is only set while
   the script is alive, so any failure degrades back to the original product
   text — preserve that fail-safe property.
+- The phrase is also mirrored onto the element's `aria-label` (set and
+  removed alongside `data-dshlp`) so assistive tech announces real text.
+- Keep the structural self-diagnostic: when the exact selector finds
+  nothing, distinguish "no run active" from "product structure changed" and
+  warn loudly for the latter.
 - The shipped clock `<span>` must keep working (the original text node is
   collapsed with `font-size: 0`; the clock keeps its own font shorthand).
 

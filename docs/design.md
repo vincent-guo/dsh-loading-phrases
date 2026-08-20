@@ -38,6 +38,16 @@ request).
   sessions supported); scans are coalesced through `queueMicrotask`.
 - **Fail-safe by construction**: `data-dshlp` is only set while the script is
   alive, so any failure degrades back to the original product text.
+- **Accessibility**: the phrase is mirrored onto the element's `aria-label`
+  (set and removed by JS alongside the attribute), so live-region
+  announcements carry real text changes instead of relying on the
+  pseudo-element, which assistive tech does not expose reliably.
+- **Narrow layouts**: the pseudo-element truncates with `text-overflow:
+  ellipsis` (`max-width: min(60vw, 40rem)`).
+- **Structural self-diagnostic** (once per activation): when the exact
+  selector finds nothing, the scan checks whether `[data-chat-flow]` exists
+  and whether a looser descendant match finds the status line; either
+  failure mode logs a console warning naming the likely cause.
 - Cleanup: observer disconnect, timers cleared, attributes removed, style tag
   removed — all inside a `ctx.effect` disposer.
 
@@ -129,11 +139,12 @@ door for editing content lists. Design baseline agreed so far:
 
 ## Verification
 
-- `npm test` runs the real bundle in a fake browser environment (94
+- `npm test` runs the real bundle in a fake browser environment (100
   assertions: appearance, alternation cadence, no-repeat full coverage,
-  locale repaint, config modes, cleanup) plus a host route test over the
-  real config file. It caught and fixed the deck-initialization crash before
-  any browser exposure.
+  locale repaint, config modes, a11y mirror, selector diagnostics,
+  concurrent lines, cleanup) plus a host route test over the real config
+  file. It caught and fixed the deck-initialization crash before any
+  browser exposure.
 - Installation verified server-side: profile dependency, patch row, bundle
   route (HTTP 200), boot-manifest entry, and byte-identical served bundle.
 - Visual behavior confirmed by the user on the live page ("页面正常"):
@@ -158,3 +169,5 @@ door for editing content lists. Design baseline agreed so far:
   editing materializes on save instead of merging at runtime; an empty list
   falls back to built-in defaults; the earlier "append mode" idea is
   cancelled.
+- v2.1 experience patches: aria-label a11y mirror, narrow-screen truncation,
+  selector self-diagnostics, and the corresponding test coverage.

@@ -19,7 +19,12 @@ line appears):
 - rotation is a no-repeat shuffle (Fisher–Yates decks, reshuffled on
   exhaustion) — no back-to-back repeats, every entry shown once per cycle;
 - the 15-second elapsed clock keeps working exactly as before;
-- the line follows the GUI locale: `zh` → Chinese lists, otherwise English.
+- the line follows the GUI locale: `zh` → Chinese lists, otherwise English;
+- the phrase is mirrored onto the status line's `aria-label`, so assistive
+  tech announces real text changes instead of the CSS pseudo-element;
+- long phrases truncate with an ellipsis in narrow windows;
+- if the product DOM changes and the status line can no longer be found,
+  the plugin logs a console diagnostic instead of failing silently.
 
 Fail-safe by construction: the original text is hidden only while the
 plugin's script is alive. Any failure degrades back to the product's own
