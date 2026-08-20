@@ -171,11 +171,30 @@ const locale = {
 
 let disposers = []
 const ctx = {
-  get: (name) => (name === 'locale' ? locale : undefined),
+  get: (name) =>
+    name === 'locale' ? locale : name === 'slots' ? slotsStub : undefined,
   effect: (fn) => {
     disposers.push(fn())
   },
 }
+
+// Slots fake: captures the settings-section registration without rendering.
+let slotInjectKey = null
+let slotInjectCb = null
+let lastSlotRegistration = null
+const slotsStub = {
+  inject(key, cb) {
+    slotInjectKey = key
+    slotInjectCb = cb
+  },
+  register(...args) {
+    lastSlotRegistration = args
+  },
+}
+
+// React stub: the panel is never rendered in the simulation; the factory
+// only stores the require() result.
+const requireStub = (spec) => (spec === 'react' ? {} : undefined)
 
 // Config route stub: per-scenario `configImpl` decides the JSON response.
 let configImpl = null
@@ -199,6 +218,9 @@ function reset() {
   localeSubs.clear()
   configImpl = null
   consoleStub.warns = []
+  slotInjectKey = null
+  slotInjectCb = null
+  lastSlotRegistration = null
   timeouts.clear()
   microtasks.length = 0
   now = 0
@@ -214,9 +236,10 @@ const runner = new Function(
   'queueMicrotask',
   'fetch',
   'console',
+  'require',
   `${bundle}\n;return 0`,
 )
-runner(win, document, MutationObserver, setTimeout, clearTimeout, queueMicrotask, fetchStub, consoleStub)
+runner(win, document, MutationObserver, setTimeout, clearTimeout, queueMicrotask, fetchStub, consoleStub, requireStub)
 assert(loadedId === 'dsh-loading-phrases', 'bundle registers id dsh-loading-phrases')
 assert(typeof factory === 'function', 'factory captured')
 const plugin = factory()
@@ -303,7 +326,7 @@ assert(tips.en.includes(elTips.getAttribute('data-dshlp')), 'mode tips: witty ne
 reset()
 configImpl = { mode: 'off' }
 await plugin.apply(ctx)
-assert(styleTag.textContent === '', 'mode off: no style injected')
+assert(styleTag.textContent.includes('dshlp-panel'), 'mode off: panel CSS still installed (settings page stays available)')
 assert(observerInstance === null, 'mode off: no observer installed')
 const elOff = new FakeEl()
 els.push(elOff)
@@ -369,6 +392,68 @@ assert(
 reset()
 await plugin.apply(ctx)
 assert(consoleStub.warns.length === 0, 'no warnings when nothing suspicious is present')
+
+// --- scenario 10: settings section registration -------------------------------------
+reset()
+await plugin.apply(ctx)
+assert(slotInjectKey === 'settings.section', 'panel waits on the settings.section slot')
+assert(typeof slotInjectCb === 'function', 'inject callback captured')
+slotInjectCb()
+assert(lastSlotRegistration !== null, 'panel registers into settings.section')
+const [slotOptions] = lastSlotRegistration
+assert(slotOptions.id === 'loading-phrases', 'section id is loading-phrases')
+assert(typeof slotOptions.label === 'function', 'nav label is a locale thunk')
+active = 'en'
+assert(slotOptions.label() === 'Loading Phrases', 'nav label follows en')
+active = 'zh'
+assert(slotOptions.label() === '加载短语', 'nav label follows zh')
+
+// --- scenario 11: in-place config re-apply (panel save path) ------------------------
+reset()
+await plugin.apply(ctx)
+assert(typeof plugin.__test === 'object' && typeof plugin.__test.applySection === 'function', 'test seam exposes applySection')
+const elRe = new FakeEl()
+els.push(elRe)
+triggerMutation()
+assert(witty.en.includes(elRe.getAttribute('data-dshlp')), 'rotation runs before re-apply')
+
+plugin.__test.applySection({
+  mode: 'off',
+  wittyIntervalMs: 5000,
+  tipsIntervalMs: 10000,
+  shuffle: true,
+  language: 'auto',
+  phrases: { en: [], zh: [] },
+  tips: { en: [], zh: [] },
+})
+assert(elRe.getAttribute('data-dshlp') === undefined, 'mode off re-apply clears the phrase immediately')
+assert(observerInstance !== null && observerInstance.disconnected, 'mode off re-apply disconnects the observer')
+
+plugin.__test.applySection({
+  mode: 'tips',
+  wittyIntervalMs: 5000,
+  tipsIntervalMs: 10000,
+  shuffle: true,
+  language: 'auto',
+  phrases: { en: [], zh: [] },
+  tips: { en: [], zh: [] },
+})
+triggerMutation()
+assert(tips.en.includes(elRe.getAttribute('data-dshlp')), 'mode tips re-apply rotates tips on the same line')
+
+plugin.__test.applySection({
+  mode: 'all',
+  wittyIntervalMs: 5000,
+  tipsIntervalMs: 10000,
+  shuffle: true,
+  language: 'auto',
+  phrases: { en: [], zh: [] },
+  tips: { en: [], zh: [] },
+})
+triggerMutation()
+assert(witty.en.includes(elRe.getAttribute('data-dshlp')), 're-apply back to all resumes with a witty phrase')
+for (const dispose of disposers) dispose()
+assert(observerInstance.disconnected, 'final cleanup disconnects the active observer')
 
 console.log(failures === 0 ? '\nALL CLIENT CHECKS PASSED' : `\n${failures} CHECK(S) FAILED`)
 process.exit(failures === 0 ? 0 : 1)
