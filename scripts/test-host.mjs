@@ -113,11 +113,15 @@ async function flush() {
   assert(res.headers['Cache-Control'] === 'no-store', 'config is never cached')
 
   const body = JSON.parse(res.body)
-  assert(body.mode === 'all', `default mode from the dev seed file (got ${body.mode})`)
-  assert(body.wittyIntervalMs === 5000 && body.tipsIntervalMs === 10000, 'default intervals from the dev seed file')
-  assert(body.shuffle === true, 'shuffle enabled by default')
-  assert(body.language === 'auto', 'language auto by default')
-  assert(Array.isArray(body.phrases?.en) && Array.isArray(body.tips?.zh), 'override slots present in payload')
+  assert(typeof body.config === 'object', 'GET wraps the section in a config field')
+  const cfg = body.config
+  assert(cfg.mode === 'all', `default mode from the dev seed file (got ${cfg.mode})`)
+  assert(cfg.wittyIntervalMs === 5000 && cfg.tipsIntervalMs === 10000, 'default intervals from the dev seed file')
+  assert(cfg.shuffle === true, 'shuffle enabled by default')
+  assert(cfg.language === 'auto', 'language auto by default')
+  assert(Array.isArray(cfg.phrases?.en) && Array.isArray(cfg.tips?.zh), 'override slots present in payload')
+  assert(body.source === 'seed', 'source reports the dev seed before any user save')
+  assert(body.userPath === userConfigPath, 'userPath points at the DSH_HOME user file')
 }
 
 // --- POST writes the USER file; GET then reflects it ------------------------------
@@ -153,8 +157,9 @@ async function flush() {
   const getRes = makeRes()
   route.handler(makeReq('GET'), getRes)
   const got = JSON.parse(getRes.body)
-  assert(got.mode === 'tips' && got.language === 'zh', 'GET reflects the saved user section')
-  assert(got.shuffle === false, 'GET reflects the saved shuffle')
+  assert(got.config.mode === 'tips' && got.config.language === 'zh', 'GET reflects the saved user section')
+  assert(got.config.shuffle === false, 'GET reflects the saved shuffle')
+  assert(got.source === 'user', 'source reports the user file after the first save')
 }
 
 // --- invalid POST body is rejected with 400 ---------------------------------------

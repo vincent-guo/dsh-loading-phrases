@@ -178,17 +178,15 @@ const ctx = {
   },
 }
 
-// Slots fake: captures the settings-section registration without rendering.
-let slotInjectKey = null
-let slotInjectCb = null
-let lastSlotRegistration = null
+// Slots fake: captures every inject/registration without rendering.
+const slotInjectCbs = new Map()
+const slotRegistrations = []
 const slotsStub = {
   inject(key, cb) {
-    slotInjectKey = key
-    slotInjectCb = cb
+    slotInjectCbs.set(key, cb)
   },
   register(...args) {
-    lastSlotRegistration = args
+    slotRegistrations.push(args)
   },
 }
 
@@ -218,9 +216,8 @@ function reset() {
   localeSubs.clear()
   configImpl = null
   consoleStub.warns = []
-  slotInjectKey = null
-  slotInjectCb = null
-  lastSlotRegistration = null
+  slotInjectCbs.clear()
+  slotRegistrations.length = 0
   timeouts.clear()
   microtasks.length = 0
   now = 0
@@ -393,20 +390,49 @@ reset()
 await plugin.apply(ctx)
 assert(consoleStub.warns.length === 0, 'no warnings when nothing suspicious is present')
 
-// --- scenario 10: settings section registration -------------------------------------
+// --- scenario 10: settings section + action registration ------------------------------
 reset()
 await plugin.apply(ctx)
-assert(slotInjectKey === 'settings.section', 'panel waits on the settings.section slot')
-assert(typeof slotInjectCb === 'function', 'inject callback captured')
-slotInjectCb()
-assert(lastSlotRegistration !== null, 'panel registers into settings.section')
-const [slotOptions] = lastSlotRegistration
-assert(slotOptions.id === 'loading-phrases', 'section id is loading-phrases')
-assert(typeof slotOptions.label === 'function', 'nav label is a locale thunk')
+assert(slotInjectCbs.has('settings.section'), 'panel waits on the settings.section slot')
+slotInjectCbs.get('settings.section')()
+const sectionRegistration = slotRegistrations.find(([o]) => o.id === 'loading-phrases')
+assert(sectionRegistration !== undefined, 'panel registers into settings.section')
+const [sectionOptions] = sectionRegistration
+assert(sectionOptions.id === 'loading-phrases', 'section id is loading-phrases')
+assert(typeof sectionOptions.label === 'function', 'nav label is a locale thunk')
 active = 'en'
-assert(slotOptions.label() === 'Loading Phrases', 'nav label follows en')
+assert(sectionOptions.label() === 'Loading Phrases', 'nav label follows en')
 active = 'zh'
-assert(slotOptions.label() === '加载短语', 'nav label follows zh')
+assert(sectionOptions.label() === '加载短语', 'nav label follows zh')
+
+assert(slotInjectCbs.has('settings.action'), 'open-config action waits on the settings.action slot')
+slotInjectCbs.get('settings.action')()
+const actionRegistration = slotRegistrations.find(([o]) => o.id === 'loading-phrases-config')
+assert(actionRegistration !== undefined, 'open-config action registers into settings.action')
+assert(actionRegistration[0].order === 10, 'open-config action sits after the shipped action')
+
+// --- scenario 10b: GET meta shape ({ config, source, userPath }) ------------------------
+reset()
+configImpl = {
+  config: {
+    mode: 'tips',
+    wittyIntervalMs: 7000,
+    tipsIntervalMs: 9000,
+    shuffle: true,
+    language: 'auto',
+    phrases: { en: [], zh: [] },
+    tips: { en: [], zh: [] },
+  },
+  source: 'user',
+  userPath: '/tmp/dshlp-user.json',
+}
+await plugin.apply(ctx)
+const elMeta = new FakeEl()
+els.push(elMeta)
+triggerMutation()
+assert(tips.en.includes(elMeta.getAttribute('data-dshlp')), 'meta-shaped GET payload drives the rotation')
+advance(9000)
+assert(tips.en.includes(elMeta.getAttribute('data-dshlp')), 'meta-shaped payload honors the tips interval')
 
 // --- scenario 11: in-place config re-apply (panel save path) ------------------------
 reset()
