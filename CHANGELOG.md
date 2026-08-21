@@ -4,6 +4,13 @@ All notable changes to `dsh-loading-phrases` are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.6.3] - 2026-08-21
+
+### Added
+
+- repository / homepage / bugs metadata pointing at the GitHub repository,
+  pinned by the manifest contract test.
+
 ## [0.6.2] - 2026-08-21
 
 ### Added

@@ -78,6 +78,16 @@ assert(
   'package.json declares keywords',
 )
 assert(
+  manifest.repository !== undefined
+    && String(manifest.repository.url || manifest.repository).includes('github.com/vincent-guo/dsh-loading-phrases'),
+  'package.json declares the GitHub repository',
+)
+assert(
+  typeof manifest.homepage === 'string'
+    && manifest.homepage.includes('github.com/vincent-guo/dsh-loading-phrases'),
+  'package.json declares the homepage URL',
+)
+assert(
   existsSync(join(root, manifest.main)) && existsSync(join(root, manifest.exports['./client'])),
   'main and ./client export targets exist',
 )
