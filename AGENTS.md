@@ -47,7 +47,10 @@ route.
   (debounced POST + `applySection` in place, visible Saving…/Saved status)
   against the last SAVED content, while phrase/tips textareas stay
   explicit-save. Keep that teardown/remount and saved-content discipline
-  when editing either side.
+  when editing either side. Saves are minimal-write: `buildSection`
+  collapses any list that is empty or identical to the built-ins back to
+  `[]`, so only genuine customizations reach the user file — keep the
+  collapse behavior when touching the panel save path.
 - Run `npm test` (manifest contract + client behavior simulation + host
   route test) before committing behavior changes; add scenario coverage for
   new config keys. The manifest test pins the bundle contract

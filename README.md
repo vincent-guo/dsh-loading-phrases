@@ -73,9 +73,10 @@ page heading/intro pattern. From it you can:
   tabs** (labeled like the language options) that open on the language
   currently in effect — the tab is just an editor
   view, never coupled to the runtime language preference;
-- save phrase edits explicitly with **Save phrases** — saving materializes
-  the edited lists into the config, an empty list falls back to the
-  built-ins, and **Restore defaults** re-seeds everything;
+- save phrase edits explicitly with **Save phrases** — saving writes only
+  what you changed: a list left at the built-in content (or cleared) stays
+  empty in the file and follows the built-ins, while a customized list is
+  written in full; **Restore defaults** re-seeds everything;
 - the panel re-reads the config every time it opens, so hand-edited file
   changes are never overwritten by a stale draft (panel save still replaces
   the whole section — the panel view wins when both were edited).

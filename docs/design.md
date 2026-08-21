@@ -122,10 +122,16 @@ loading-phrases`) implements the materialize-on-save design:
 
 - **Materialize-on-save, not runtime merge.** The panel seeds its list
   editor with the built-in phrases on first open (or with the saved list
-  once one exists); saving writes the complete edited list back to the
-  config, and the runtime keeps the existing semantics — a non-empty config
-  list replaces the built-in list, no merge logic at runtime. The earlier
+  once one exists); saving writes the edited list back to the config, and
+  the runtime keeps the existing semantics — a non-empty config list
+  replaces the built-in list, no merge logic at runtime. The earlier
   "append mode" idea is cancelled in favor of this.
+- **Minimal write (v0.6 amendment).** Saving collapses any list that is
+  empty or identical to the built-in content back to `[]`, so the user file
+  records only genuine customizations — untouched lists keep following
+  future built-in updates instead of pinning a snapshot. A customized list
+  (line deleted, added, or reordered) is written in full, since that is the
+  smallest representation the replace-semantics model allows.
 - **Empty means fall back to default.** Saving an empty list removes that
   language's key and the runtime falls back to the built-in list; channel
   disabling is expressed through `mode`, never through an empty list.
@@ -235,3 +241,8 @@ settings export/sync).
   `./cordis.patch.yml`, so `dsh plugin add` reconciles
   `dsh.profile.bundles` and users no longer hand-write the load row; the
   manifest contract is pinned by `scripts/test-manifest.mjs`.
+- Minimal-write save (v0.6): saving collapses lists that are empty or
+  identical to the built-ins back to `[]`, so a preference-only save no
+  longer materializes every built-in list into the user file; customized
+  lists still write in full. Test coverage in the client simulation
+  (`buildSection` seam).

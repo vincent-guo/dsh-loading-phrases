@@ -15,6 +15,8 @@
 //   - multiple concurrent status lines rotate independently
 //   - selector self-diagnostics when the product structure changes
 //   - element removal clears attributes and timers
+//   - minimal-write save: untouched lists collapse to empty, customized
+//     lists (deleted / reordered / added lines) are written in full
 //   - cleanup disconnects the observer and removes the style tag
 //
 // Usage: node scripts/test-client.mjs
@@ -474,6 +476,73 @@ plugin.__test.applySection({
 })
 triggerMutation()
 assert(witty.en.includes(elRe.getAttribute('data-dshlp')), 're-apply back to all resumes with a witty phrase')
+
+// --- scenario 12: minimal-write save (scheme C) --------------------------------------
+reset()
+await plugin.apply(ctx)
+assert(typeof plugin.__test.buildSection === 'function', 'test seam exposes buildSection')
+const makePrefs = (mode) => ({ mode, wittySeconds: 5, tipsSeconds: 10, shuffle: true, language: 'auto' })
+
+// Untouched textareas hold the seeded built-ins: every list collapses to empty.
+const seeded = plugin.__test.buildSection(makePrefs('witty'), {
+  phrasesEn: witty.en.join('\n'),
+  phrasesZh: witty.zh.join('\n'),
+  tipsEn: tips.en.join('\n'),
+  tipsZh: tips.zh.join('\n'),
+})
+assert(seeded.mode === 'witty' && seeded.wittyIntervalMs === 5000, 'minimal write keeps the preference fields')
+assert(
+  seeded.phrases.en.length === 0 && seeded.phrases.zh.length === 0
+    && seeded.tips.en.length === 0 && seeded.tips.zh.length === 0,
+  'untouched lists collapse to empty (runtime falls back to built-ins)',
+)
+
+// One deleted line: the customized list is written in full, the others collapse.
+const minusOne = witty.en.slice(0, witty.en.length - 1)
+const deleted = plugin.__test.buildSection(makePrefs('all'), {
+  phrasesEn: minusOne.join('\n'),
+  phrasesZh: witty.zh.join('\n'),
+  tipsEn: tips.en.join('\n'),
+  tipsZh: tips.zh.join('\n'),
+})
+assert(
+  deleted.phrases.en.length === minusOne.length
+    && deleted.phrases.en[0] === minusOne[0]
+    && deleted.phrases.en[deleted.phrases.en.length - 1] === minusOne[minusOne.length - 1],
+  'a deleted line is preserved: the whole customized list is written',
+)
+assert(
+  deleted.phrases.zh.length === 0 && deleted.tips.en.length === 0 && deleted.tips.zh.length === 0,
+  'lists the user did not touch stay collapsed',
+)
+
+// A reordered list differs from the built-ins, so it is written with the new order.
+const reordered = [witty.zh[witty.zh.length - 1], ...witty.zh.slice(0, witty.zh.length - 1)]
+const reorderSection = plugin.__test.buildSection(makePrefs('all'), {
+  phrasesEn: witty.en.join('\n'),
+  phrasesZh: reordered.join('\n'),
+  tipsEn: tips.en.join('\n'),
+  tipsZh: tips.zh.join('\n'),
+})
+assert(
+  reorderSection.phrases.zh.length === reordered.length
+    && reorderSection.phrases.zh[0] === reordered[0],
+  'a reordered list is written in full with the new order',
+)
+
+// An explicitly cleared list stays empty (same fallback semantics as collapse).
+const cleared = plugin.__test.buildSection(makePrefs('tips'), {
+  phrasesEn: '',
+  phrasesZh: '',
+  tipsEn: tips.en.join('\n'),
+  tipsZh: tips.zh.join('\n'),
+})
+assert(
+  cleared.phrases.en.length === 0 && cleared.phrases.zh.length === 0
+    && cleared.tips.en.length === 0 && cleared.tips.zh.length === 0,
+  'cleared lists stay empty',
+)
+
 for (const dispose of disposers) dispose()
 assert(observerInstance.disconnected, 'final cleanup disconnects the active observer')
 
