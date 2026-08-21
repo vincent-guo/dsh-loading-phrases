@@ -54,8 +54,8 @@ Hard-refresh the Web GUI page (⌘/Ctrl+Shift+R).
 
 The plugin registers a **Loading Phrases** page in the GUI Settings (sidebar
 foot → Settings), styled with the official design-system primitives (selector
-pills, buttons, inputs) and the shipped settings-row layout. From it you
-can:
+pills, buttons, inputs), the shipped settings-row layout, and the Plugins-
+page heading/intro pattern. From it you can:
 
 - switch `mode` (alternating / witty only / tips only / off), the dwell
   times (**shown in seconds**, stored as milliseconds), the no-repeat

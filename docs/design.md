@@ -222,5 +222,6 @@ settings export/sync).
 - v0.4 panel UX iteration: seconds display, English/中文 editor tabs with
   initial language positioning, debounced preference auto-save, re-fetch on
   panel mount, the in-panel open-config button over the extended GET
-  metadata, and (0.4.2) the official design-system restyle with visible
-  auto-save status.
+  metadata, the (0.4.2) official design-system restyle with visible
+  auto-save status, and the (0.4.3) plugins-page header/tabs pattern plus a
+  right-aligned open-config action.
