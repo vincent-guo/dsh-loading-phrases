@@ -1,6 +1,6 @@
 {
   "name": "dsh-loading-phrases",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "description": "Replace the 'Deep diving...' running status in the DeepSeek Harness Web GUI with alternating witty phrases and practical tips.",
   "type": "module",
   "main": "lib/index.js",
