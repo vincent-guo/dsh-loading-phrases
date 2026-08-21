@@ -405,11 +405,7 @@ assert(sectionOptions.label() === 'Loading Phrases', 'nav label follows en')
 active = 'zh'
 assert(sectionOptions.label() === '加载短语', 'nav label follows zh')
 
-assert(slotInjectCbs.has('settings.action'), 'open-config action waits on the settings.action slot')
-slotInjectCbs.get('settings.action')()
-const actionRegistration = slotRegistrations.find(([o]) => o.id === 'loading-phrases-config')
-assert(actionRegistration !== undefined, 'open-config action registers into settings.action')
-assert(actionRegistration[0].order === 10, 'open-config action sits after the shipped action')
+assert(!slotInjectCbs.has('settings.action'), 'no header action: the open-config button lives inside the panel page')
 
 // --- scenario 10b: GET meta shape ({ config, source, userPath }) ------------------------
 reset()
