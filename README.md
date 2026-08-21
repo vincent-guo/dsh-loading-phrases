@@ -56,12 +56,23 @@ The plugin registers a **Loading Phrases** page in the GUI Settings (sidebar
 foot → Settings). From it you can:
 
 - switch `mode` (alternating / witty only / tips only / off), the dwell
-  times, the no-repeat switch, and the language policy;
-- edit the phrase and tip lists (one per line), seeded with the built-in
-  lists — saving materializes the edited lists into the config, an empty
-  list falls back to the built-ins, and **Restore defaults** re-seeds
-  everything;
-- saves apply to the running page immediately (no refresh needed).
+  times (**shown in seconds**, stored as milliseconds), the no-repeat
+  switch, and the language policy — **preference changes save themselves**
+  (debounced) and apply immediately, no button needed;
+- edit the phrase and tip lists (one per line) behind **EN / ZH tabs** that
+  open on the language currently in effect — the tab is just an editor
+  view, never coupled to the runtime language preference;
+- save phrase edits explicitly with **Save phrases** — saving materializes
+  the edited lists into the config, an empty list falls back to the
+  built-ins, and **Restore defaults** re-seeds everything;
+- the panel re-reads the config every time it opens, so hand-edited file
+  changes are never overwritten by a stale draft (panel save still replaces
+  the whole section — the panel view wins when both were edited).
+
+A header action **Open phrase config** opens
+`~/.dsh/dsh-loading-phrases.json` in your default editor for bulk editing;
+it is enabled after the first save creates the file. File edits apply after
+a page refresh.
 
 ## Configuration
 

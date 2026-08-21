@@ -25,16 +25,20 @@ route.
   build step) and must stay syntactically valid: run `node --check
   lib/client.js` before committing.
 - `lib/index.js` is a plain ESM host plugin; it registers the config route
-  (`GET` / `POST /dsh-loading-phrases/config.json`, no-store): GET returns
-  the normalized section resolved as user file
+  (`GET` / `POST /dsh-loading-phrases/config.json`, no-store): GET answers
+  `{ config, source, userPath }` with the section resolved as user file
   (`$DSH_HOME/dsh-loading-phrases.json`) → package-root dev seed → built-in
   defaults (re-read per request); POST validates and persists to the
-  user-owned file only — never write to the package directory.
+  user-owned file only — never write to the package directory. The client
+  also accepts the legacy flat section shape.
 - The client registers the settings page through `settings.section`
-  (`id: loading-phrases`, locale-thunk nav label); saving POSTs the section
-  and re-applies it in place through the same `applySection` seam the
-  rotation mounts use — keep that teardown/remount discipline when editing
-  either side.
+  (`id: loading-phrases`, locale-thunk nav label) and an open-config action
+  through `settings.action` (`id: loading-phrases-config`, gated on
+  `source === 'user'`, opened via `connection.api.host.openPath`). The panel
+  must re-fetch the config on every mount; preference changes auto-save
+  (debounced POST + `applySection` in place) against the last SAVED
+  content, while phrase/tips textareas stay explicit-save. Keep that
+  teardown/remount and saved-content discipline when editing either side.
 - Run `npm test` (client behavior simulation + host route test) before
   committing behavior changes; add scenario coverage for new config keys.
 

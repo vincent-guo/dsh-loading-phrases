@@ -147,15 +147,37 @@ two runtime dependencies, schema upkeep, and a return to dual-source
 preference resolution. Revisit only if a real need appears (e.g. DSH
 settings export/sync).
 
+**Panel UX iteration (v0.4):**
+
+- **Seconds display**: dwell inputs show seconds (internals and the config
+  file stay milliseconds; min 1 s integer).
+- **EN / ZH editor tabs**: one tab per language showing its phrase and tip
+  lists; the tab initially opens on the language currently in effect
+  (one-time positioning) and is never live-bound to the language
+  preference.
+- **Preference auto-save**: mode/interval/shuffle/language changes persist
+  through a debounced POST (600 ms) + in-place re-apply. Auto-save always
+  pairs with the last SAVED content, so unsaved textarea drafts never ride
+  along; content lists keep their explicit Save button.
+- **Re-fetch on mount**: the panel re-reads the config every time it opens,
+  so external file edits are reflected and never clobbered by a stale
+  draft (a panel save still replaces the whole section).
+- **Open-config action**: a `settings.action` entry ("Open phrase config")
+  calls `connection.api.host.openPath({ path })` to open the user config
+  file in the default editor; enabled only once the user file exists (the
+  GET response now carries `{ config, source, userPath }` metadata), and
+  failures surface inline. File edits apply after a page refresh.
+
 ## Verification
 
-- `npm test` runs the real bundle in a fake browser environment (122
+- `npm test` runs the real bundle in a fake browser environment (133
   assertions: appearance, alternation cadence, no-repeat full coverage,
   locale repaint, config modes, a11y mirror, selector diagnostics,
-  concurrent lines, panel registration, in-place re-apply, cleanup) plus a
-  host route test (GET/POST save round-trip, validation, disposal) over the
-  real config file. It caught and fixed the deck-initialization crash
-  before any browser exposure.
+  concurrent lines, panel and action registration, config metadata shape,
+  in-place re-apply, cleanup) plus a host route test (GET/POST save
+  round-trip, source/userPath metadata, validation, disposal) over the real
+  config file. It caught and fixed the deck-initialization crash before
+  any browser exposure.
 - Installation verified server-side: profile dependency, patch row, bundle
   route (HTTP 200), boot-manifest entry, and byte-identical served bundle.
 - Visual behavior confirmed by the user on the live page ("页面正常"):
@@ -190,3 +212,6 @@ settings export/sync).
   `$DSH_HOME/dsh-loading-phrases.json`: single-source JSON already covers
   durability and immediate apply; the migration's remaining benefits were
   marginal against two runtime dependencies and dual-source resolution.
+- v0.4 panel UX iteration: seconds display, EN/ZH editor tabs with initial
+  language positioning, debounced preference auto-save, re-fetch on panel
+  mount, and the open-config header action over the extended GET metadata.
