@@ -33,22 +33,29 @@ status text.
 ## Install
 
 ```bash
-dsh plugin add /absolute/path/to/dsh-loading-phrases
+dsh plugin --profile <profile> add dsh-loading-phrases
 ```
 
-(or, inside the profile directory: `corepack pnpm add
-/absolute/path/to/dsh-loading-phrases`)
+The package declares `dsh.bundle.patch` — a `cordis.patch.yml` at the package
+root that inserts the `loading-phrases` row — so `dsh plugin add` reconciles
+the profile's `dsh.profile.bundles` automatically and the row is composed
+from the package itself. No hand-written load row is needed. For a local
+checkout, pass the absolute path instead of the package name (or run
+`corepack pnpm add /absolute/path/to/dsh-loading-phrases` inside the profile
+directory).
 
-Then add a load row to `~/.dsh/profiles/<profile>/cordis.patch.yml`
-(create the file if absent):
+Restart the profile process so the host half loads, then hard-refresh the Web
+GUI page (⌘/Ctrl+Shift+R).
+
+If the package is installed as a plain dependency without bundle
+reconciliation, add the load row manually to
+`~/.dsh/profiles/<profile>/cordis.patch.yml`:
 
 ```yaml
 - insert:
     - id: loading-phrases
       name: dsh-loading-phrases
 ```
-
-Hard-refresh the Web GUI page (⌘/Ctrl+Shift+R).
 
 ## Settings panel
 
@@ -132,10 +139,12 @@ written by the plugin.
 
 ```
 dsh-loading-phrases.json   default configuration (served by the host half)
+cordis.patch.yml           profile bundle patch (the loading-phrases row)
 lib/index.js               host half (config HTTP route)
 lib/client.js              client bundle (DOM target, rotation engine, generated data)
 src/data/*.json            phrase/tips content (single source of truth)
 scripts/sync-data.js       regenerates the data blocks in lib/client.js
+scripts/test-manifest.mjs  distribution-manifest contract test
 scripts/test-client.mjs    client bundle behavior simulation
 scripts/test-host.mjs      host config route test
 docs/design.md             design baseline and decisions

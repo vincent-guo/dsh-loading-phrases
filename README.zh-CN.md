@@ -29,22 +29,26 @@
 ## 安装
 
 ```bash
-dsh plugin add /绝对路径/dsh-loading-phrases
+dsh plugin --profile <profile> add dsh-loading-phrases
 ```
 
-（也可在 profile 目录内直接运行 `corepack pnpm add
-/绝对路径/dsh-loading-phrases`）
+包声明了 `dsh.bundle.patch`（包根目录的 `cordis.patch.yml`，内含
+`loading-phrases` 行），因此 `dsh plugin add` 会自动把包名写入 profile 的
+`dsh.profile.bundles`，组合行由包自身提供——无需手写加载行。本地开发仓库
+把包名换成绝对路径即可（也可在 profile 目录内运行 `corepack pnpm add
+/绝对路径/dsh-loading-phrases`）。
 
-然后在 `~/.dsh/profiles/<profile>/cordis.patch.yml` 中加入加载行（文件不存在
-则新建）：
+重启 profile 进程以加载 host 半侧，然后硬刷新 Web GUI 页面
+（⌘/Ctrl+Shift+R）。
+
+若包被安装为普通依赖而未触发 bundle 合并，可手动在
+`~/.dsh/profiles/<profile>/cordis.patch.yml` 中加入加载行：
 
 ```yaml
 - insert:
     - id: loading-phrases
       name: dsh-loading-phrases
 ```
-
-硬刷新 Web GUI 页面（⌘/Ctrl+Shift+R）。
 
 ## 设置面板
 
@@ -117,10 +121,12 @@ dsh plugin add /绝对路径/dsh-loading-phrases
 
 ```
 dsh-loading-phrases.json   默认配置（host 半提供）
+cordis.patch.yml           profile bundle 补丁（loading-phrases 行）
 lib/index.js               host 半（配置 HTTP 路由）
 lib/client.js              客户端 bundle（DOM 定位、轮换引擎、生成的数据块）
 src/data/*.json            短语内容（唯一事实来源）
 scripts/sync-data.js       重新生成 lib/client.js 中的数据块
+scripts/test-manifest.mjs  分发清单契约测试
 scripts/test-client.mjs    客户端 bundle 行为仿真
 scripts/test-host.mjs      host 配置路由测试
 docs/design.md             设计基线与决策记录

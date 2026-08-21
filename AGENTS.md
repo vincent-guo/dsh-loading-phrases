@@ -9,8 +9,12 @@ Web GUI. It replaces the shipped `Deep diving...` running-status line (in its
 original position in the chat flow) with alternating witty phrases and
 practical tips, matching the GUI locale (zh / en).
 
-Delivery route: mounted as a package row in the DSH profile
-(`cordis.patch.yml` + `dsh plugin add`); the client bundle registers through
+Delivery route: the package declares `dsh.bundle.patch` — a
+`cordis.patch.yml` at the package root that inserts the `loading-phrases`
+row — so `dsh plugin add` reconciles the profile's `dsh.profile.bundles`
+automatically and no hand-written load row is needed (the profile's own
+patch layer can still override the row by id; keep the shipped patch file
+in sync with any row rename). The client bundle registers through
 `window.__ModuleLoader__.load`. The host half serves the configuration
 route.
 
@@ -44,8 +48,11 @@ route.
   against the last SAVED content, while phrase/tips textareas stay
   explicit-save. Keep that teardown/remount and saved-content discipline
   when editing either side.
-- Run `npm test` (client behavior simulation + host route test) before
-  committing behavior changes; add scenario coverage for new config keys.
+- Run `npm test` (manifest contract + client behavior simulation + host
+  route test) before committing behavior changes; add scenario coverage for
+  new config keys. The manifest test pins the bundle contract
+  (`dsh.bundle.patch`, the patch file's `loading-phrases` row, and the npm
+  `files` allowlist).
 
 ## Content workflow (single source of truth)
 

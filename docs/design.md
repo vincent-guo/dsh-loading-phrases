@@ -6,10 +6,15 @@ informative tips, in the original position.
 
 ## Delivery route (final)
 
-**Plain-package plugin**, mounted through the DSH profile:
+**Plain-package plugin**, mounted through the DSH profile as a **profile
+bundle**:
 
-- `dsh plugin add <path>` (or `corepack pnpm add <path>` in the profile),
-- a load row in `~/.dsh/profiles/<profile>/cordis.patch.yml`,
+- the package declares `dsh.bundle.patch` → `./cordis.patch.yml`, which
+  inserts the `loading-phrases` row (id + package name); `dsh plugin add
+  <package-or-path>` installs the dependency and reconciles the profile's
+  `dsh.profile.bundles` automatically, so no hand-written load row is
+  needed — the row ships and versions with the package. The profile's own
+  `cordis.patch.yml` still applies last and can override the row by id.
 - client bundle registered through `window.__ModuleLoader__.load` (full
   browser environment), host half `lib/index.js` serving the configuration
   route.
@@ -225,3 +230,8 @@ settings export/sync).
   metadata, the (0.4.2) official design-system restyle with visible
   auto-save status, and the (0.4.3) plugins-page header/tabs pattern plus a
   right-aligned open-config action.
+- Bundle distribution (Track C, install UX): the package now ships the
+  `loading-phrases` row itself via `dsh.bundle.patch` →
+  `./cordis.patch.yml`, so `dsh plugin add` reconciles
+  `dsh.profile.bundles` and users no longer hand-write the load row; the
+  manifest contract is pinned by `scripts/test-manifest.mjs`.
