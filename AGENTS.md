@@ -32,9 +32,11 @@ route.
   user-owned file only — never write to the package directory. The client
   also accepts the legacy flat section shape.
 - The client registers the settings page through `settings.section`
-  (`id: loading-phrases`, locale-thunk nav label) and an open-config action
-  through `settings.action` (`id: loading-phrases-config`, gated on
-  `source === 'user'`, opened via `connection.api.host.openPath`). The panel
+  (`id: loading-phrases`, locale-thunk nav label). The open-config button
+  lives inside the panel's own action row (not the header `settings.action`
+  slot — the shell passes no active-section info there) and opens the user
+  file via a lazy `ctx.get('connection')` +
+  `connection.api.host.openPath`, gated on `source === 'user'`. The panel
   must re-fetch the config on every mount; preference changes auto-save
   (debounced POST + `applySection` in place) against the last SAVED
   content, while phrase/tips textareas stay explicit-save. Keep that

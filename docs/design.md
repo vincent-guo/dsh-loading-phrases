@@ -151,10 +151,10 @@ settings export/sync).
 
 - **Seconds display**: dwell inputs show seconds (internals and the config
   file stay milliseconds; min 1 s integer).
-- **EN / ZH editor tabs**: one tab per language showing its phrase and tip
-  lists; the tab initially opens on the language currently in effect
-  (one-time positioning) and is never live-bound to the language
-  preference.
+- **English / 中文 editor tabs** (labeled like the language options): one
+  tab per language showing its phrase and tip lists; the tab initially
+  opens on the language currently in effect (one-time positioning) and is
+  never live-bound to the language preference.
 - **Preference auto-save**: mode/interval/shuffle/language changes persist
   through a debounced POST (600 ms) + in-place re-apply. Auto-save always
   pairs with the last SAVED content, so unsaved textarea drafts never ride
@@ -162,11 +162,13 @@ settings export/sync).
 - **Re-fetch on mount**: the panel re-reads the config every time it opens,
   so external file edits are reflected and never clobbered by a stale
   draft (a panel save still replaces the whole section).
-- **Open-config action**: a `settings.action` entry ("Open phrase config")
-  calls `connection.api.host.openPath({ path })` to open the user config
-  file in the default editor; enabled only once the user file exists (the
-  GET response now carries `{ config, source, userPath }` metadata), and
-  failures surface inline. File edits apply after a page refresh.
+- **Open-config button**: rendered inside the panel's own action row (so it
+  only shows while the Loading Phrases page is open — the shell passes no
+  active-section info to header actions) and calls
+  `connection.api.host.openPath({ path })` to open the user config file in
+  the default editor; enabled only once the user file exists (the GET
+  response carries `{ config, source, userPath }` metadata), and failures
+  surface inline. File edits apply after a page refresh.
 
 ## Verification
 
@@ -212,6 +214,7 @@ settings export/sync).
   `$DSH_HOME/dsh-loading-phrases.json`: single-source JSON already covers
   durability and immediate apply; the migration's remaining benefits were
   marginal against two runtime dependencies and dual-source resolution.
-- v0.4 panel UX iteration: seconds display, EN/ZH editor tabs with initial
-  language positioning, debounced preference auto-save, re-fetch on panel
-  mount, and the open-config header action over the extended GET metadata.
+- v0.4 panel UX iteration: seconds display, English/中文 editor tabs with
+  initial language positioning, debounced preference auto-save, re-fetch on
+  panel mount, and the in-panel open-config button over the extended GET
+  metadata.

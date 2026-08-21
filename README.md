@@ -59,8 +59,9 @@ foot → Settings). From it you can:
   times (**shown in seconds**, stored as milliseconds), the no-repeat
   switch, and the language policy — **preference changes save themselves**
   (debounced) and apply immediately, no button needed;
-- edit the phrase and tip lists (one per line) behind **EN / ZH tabs** that
-  open on the language currently in effect — the tab is just an editor
+- edit the phrase and tip lists (one per line) behind **English / 中文
+  tabs** (labeled like the language options) that open on the language
+  currently in effect — the tab is just an editor
   view, never coupled to the runtime language preference;
 - save phrase edits explicitly with **Save phrases** — saving materializes
   the edited lists into the config, an empty list falls back to the
@@ -69,10 +70,10 @@ foot → Settings). From it you can:
   changes are never overwritten by a stale draft (panel save still replaces
   the whole section — the panel view wins when both were edited).
 
-A header action **Open phrase config** opens
-`~/.dsh/dsh-loading-phrases.json` in your default editor for bulk editing;
-it is enabled after the first save creates the file. File edits apply after
-a page refresh.
+The **Open phrase config** button (beside Save/Restore on the page itself)
+opens `~/.dsh/dsh-loading-phrases.json` in your default editor for bulk
+editing; it is enabled after the first save creates the file. File edits
+apply after a page refresh.
 
 ## Configuration
 
