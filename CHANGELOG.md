@@ -4,6 +4,21 @@ All notable changes to `dsh-loading-phrases` are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.6.4] - 2026-08-21
+
+### Added
+
+- `dsh-plugin` keyword.
+- `.DS_Store` and `*.tgz` to `.gitignore`.
+
+### Changed
+
+- documentation pass: corrected the stale assertion count and the
+  installation-verification notes in the design memo, aligned the
+  empty-list wording with the minimal-write behavior, updated the
+  manifest-test description in AGENTS.md, and clarified the elapsed-clock
+  wording in the README.
+
 ## [0.6.3] - 2026-08-21
 
 ### Added

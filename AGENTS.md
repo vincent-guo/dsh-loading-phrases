@@ -58,8 +58,10 @@ route.
 - Run `npm test` (manifest contract + client behavior simulation + host
   route test) before committing behavior changes; add scenario coverage for
   new config keys. The manifest test pins the bundle contract
-  (`dsh.bundle.patch`, the patch file's `loading-phrases` row, and the npm
-  `files` allowlist).
+  (`dsh.bundle.patch`, the patch file's `loading-phrases` row), the npm
+  `files` allowlist (runtime halves, patch, LICENSE / NOTICE.md /
+  CHANGELOG.md), and the publish metadata (license, author, keywords,
+  repository / homepage URLs).
 
 ## Content workflow (single source of truth)
 

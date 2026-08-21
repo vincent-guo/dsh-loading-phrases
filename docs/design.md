@@ -132,9 +132,10 @@ loading-phrases`) implements the materialize-on-save design:
   future built-in updates instead of pinning a snapshot. A customized list
   (line deleted, added, or reordered) is written in full, since that is the
   smallest representation the replace-semantics model allows.
-- **Empty means fall back to default.** Saving an empty list removes that
-  language's key and the runtime falls back to the built-in list; channel
-  disabling is expressed through `mode`, never through an empty list.
+- **Empty means fall back to default.** An empty list (or one collapsed to
+  `[]` by the minimal write) keeps the runtime falling back to the built-in
+  list; channel disabling is expressed through `mode`, never through an
+  empty list.
 - **Restore defaults.** The panel offers an explicit "restore defaults"
   action that saves the default section (empty lists, default preferences)
   and re-seeds the editor from the built-ins.
@@ -188,16 +189,21 @@ settings export/sync).
 
 ## Verification
 
-- `npm test` runs the real bundle in a fake browser environment (133
-  assertions: appearance, alternation cadence, no-repeat full coverage,
+- `npm test` runs three suites: a distribution-manifest contract test (the
+  bundle patch shape, the npm `files` allowlist, the legal files, and the
+  publish metadata), the real client bundle in a fake browser environment
+  (68 assertions: appearance, alternation cadence, no-repeat full coverage,
   locale repaint, config modes, a11y mirror, selector diagnostics,
-  concurrent lines, panel and action registration, config metadata shape,
-  in-place re-apply, cleanup) plus a host route test (GET/POST save
-  round-trip, source/userPath metadata, validation, disposal) over the real
-  config file. It caught and fixed the deck-initialization crash before
-  any browser exposure.
-- Installation verified server-side: profile dependency, patch row, bundle
-  route (HTTP 200), boot-manifest entry, and byte-identical served bundle.
+  concurrent lines, panel registration, config metadata shape, in-place
+  re-apply, minimal-write collapse, cleanup), and a host route test (28
+  assertions: GET/POST save round-trip, source/userPath metadata,
+  validation, disposal) over the real config file. The client simulation
+  caught and fixed the deck-initialization crash before any browser
+  exposure.
+- Installation verified server-side: the `dsh.profile.bundles` entry, the
+  bundle patch resolved from the package root, the host config route (HTTP
+  200), and the served client bundle (HTTP 200, byte-identical to the
+  source).
 - Visual behavior confirmed by the user on the live page ("页面正常"):
   original-position replacement, alternation, and the retained clock.
 
@@ -246,3 +252,11 @@ settings export/sync).
   longer materializes every built-in list into the user file; customized
   lists still write in full. Test coverage in the client simulation
   (`buildSection` seam).
+- v0.6.1 drops the host half's boot log line (successful mounts are silent
+  again, like the rest of the profile rows).
+- v0.6.2 release packaging: MIT LICENSE added; LICENSE / NOTICE.md /
+  CHANGELOG.md join the npm tarball via the `files` allowlist; package
+  metadata (author, keywords) and a Keep-a-Changelog CHANGELOG back to
+  0.1.0; the manifest test pins the packaging.
+- v0.6.3 points the package at its GitHub repository (repository / homepage
+  / bugs metadata).

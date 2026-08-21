@@ -18,7 +18,7 @@ line appears):
   each run starts with a witty phrase;
 - rotation is a no-repeat shuffle (Fisher–Yates decks, reshuffled on
   exhaustion) — no back-to-back repeats, every entry shown once per cycle;
-- the 15-second elapsed clock keeps working exactly as before;
+- the elapsed clock that appears after 15 s keeps working exactly as before;
 - the line follows the GUI locale: `zh` → Chinese lists, otherwise English;
 - the phrase is mirrored onto the status line's `aria-label`, so assistive
   tech announces real text changes instead of the CSS pseudo-element;

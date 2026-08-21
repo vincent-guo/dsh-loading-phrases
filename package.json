@@ -1,6 +1,6 @@
 {
   "name": "dsh-loading-phrases",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "description": "Replace the 'Deep diving...' running status in the DeepSeek Harness Web GUI with alternating witty phrases and practical tips.",
   "author": "vincent-guo <vincent.weiguo@gmail.com>",
   "repository": {
@@ -13,6 +13,7 @@
   },
   "keywords": [
     "dsh",
+    "dsh-plugin",
     "deepseek",
     "deepseek-harness",
     "web-gui",
