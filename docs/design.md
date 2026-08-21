@@ -156,9 +156,14 @@ settings export/sync).
   opens on the language currently in effect (one-time positioning) and is
   never live-bound to the language preference.
 - **Preference auto-save**: mode/interval/shuffle/language changes persist
-  through a debounced POST (600 ms) + in-place re-apply. Auto-save always
-  pairs with the last SAVED content, so unsaved textarea drafts never ride
-  along; content lists keep their explicit Save button.
+  through a debounced POST (600 ms) + in-place re-apply, with a visible
+  Saving…/Saved status. Auto-save always pairs with the last SAVED content,
+  so unsaved textarea drafts never ride along; content lists keep their
+  explicit Save button, and the panel states the split semantics up front.
+- **Official design-system styling**: the panel uses the primitives
+  (Button / Input / Menu selector pills) and the shipped settings-row
+  layout (title left, control right, hairline separators), matching the
+  Language row pattern.
 - **Re-fetch on mount**: the panel re-reads the config every time it opens,
   so external file edits are reflected and never clobbered by a stale
   draft (a panel save still replaces the whole section).
@@ -216,5 +221,6 @@ settings export/sync).
   marginal against two runtime dependencies and dual-source resolution.
 - v0.4 panel UX iteration: seconds display, English/中文 editor tabs with
   initial language positioning, debounced preference auto-save, re-fetch on
-  panel mount, and the in-panel open-config button over the extended GET
-  metadata.
+  panel mount, the in-panel open-config button over the extended GET
+  metadata, and (0.4.2) the official design-system restyle with visible
+  auto-save status.

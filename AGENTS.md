@@ -32,15 +32,18 @@ route.
   user-owned file only — never write to the package directory. The client
   also accepts the legacy flat section shape.
 - The client registers the settings page through `settings.section`
-  (`id: loading-phrases`, locale-thunk nav label). The open-config button
-  lives inside the panel's own action row (not the header `settings.action`
-  slot — the shell passes no active-section info there) and opens the user
-  file via a lazy `ctx.get('connection')` +
+  (`id: loading-phrases`, locale-thunk nav label). Panel controls must use
+  the design-system primitives (Button / Input / Menu selector pills) with
+  the shipped settings-row layout — never hand-rolled select/input styling.
+  The open-config button lives inside the panel's own action row (not the
+  header `settings.action` slot — the shell passes no active-section info
+  there) and opens the user file via a lazy `ctx.get('connection')` +
   `connection.api.host.openPath`, gated on `source === 'user'`. The panel
   must re-fetch the config on every mount; preference changes auto-save
-  (debounced POST + `applySection` in place) against the last SAVED
-  content, while phrase/tips textareas stay explicit-save. Keep that
-  teardown/remount and saved-content discipline when editing either side.
+  (debounced POST + `applySection` in place, visible Saving…/Saved status)
+  against the last SAVED content, while phrase/tips textareas stay
+  explicit-save. Keep that teardown/remount and saved-content discipline
+  when editing either side.
 - Run `npm test` (client behavior simulation + host route test) before
   committing behavior changes; add scenario coverage for new config keys.
 

@@ -53,12 +53,15 @@ Hard-refresh the Web GUI page (⌘/Ctrl+Shift+R).
 ## Settings panel
 
 The plugin registers a **Loading Phrases** page in the GUI Settings (sidebar
-foot → Settings). From it you can:
+foot → Settings), styled with the official design-system primitives (selector
+pills, buttons, inputs) and the shipped settings-row layout. From it you
+can:
 
 - switch `mode` (alternating / witty only / tips only / off), the dwell
   times (**shown in seconds**, stored as milliseconds), the no-repeat
   switch, and the language policy — **preference changes save themselves**
-  (debounced) and apply immediately, no button needed;
+  (debounced, with a Saving…/Saved status) and apply immediately, no button
+  needed;
 - edit the phrase and tip lists (one per line) behind **English / 中文
   tabs** (labeled like the language options) that open on the language
   currently in effect — the tab is just an editor
