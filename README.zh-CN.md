@@ -123,6 +123,9 @@ dsh plugin --profile <profile> add dsh-loading-phrases
 ```
 dsh-loading-phrases.json   默认配置（host 半提供）
 cordis.patch.yml           profile bundle 补丁（loading-phrases 行）
+CHANGELOG.md               版本发布记录
+NOTICE.md                  派生短语的 Apache-2.0 归属声明
+LICENSE                    MIT 许可证
 lib/index.js               host 半（配置 HTTP 路由）
 lib/client.js              客户端 bundle（DOM 定位、轮换引擎、生成的数据块）
 src/data/*.json            短语内容（唯一事实来源）
@@ -135,14 +138,13 @@ docs/design.md             设计基线与决策记录
 
 ## 路线图
 
-设置面板（v3）已交付，暂无后续里程碑。可选方向：
+设置面板（v3）、profile bundle 分发（v0.5）、最小化写入保存（v0.6）均已交付，
+暂无后续里程碑。可选方向：
 
-- 若「显式保存按钮」体验偏重，可为偏好控件加防抖自动保存（几十行，
-  无新依赖）；
 - 仅当出现具体需求时再评估把偏好迁入 `settings` 服务（例如 DSH 推出
   设置导出/同步功能，希望本插件偏好纳入其中）。决策记录见
   `docs/design.md`。
 
 ## 许可证
 
-[MIT](./LICENSE)
+[MIT](./LICENSE)。发布记录见 [CHANGELOG.md](./CHANGELOG.md)。

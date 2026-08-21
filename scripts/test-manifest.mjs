@@ -3,10 +3,11 @@
 // Asserts the bundle contract the profile composer and `dsh plugin add`
 // rely on: the package declares `dsh.bundle.patch`, the patch file exists
 // at the package root and carries the loading-phrases insert row (whose
-// `name` matches the package name), and the npm `files` allowlist ships
-// both the runtime halves and the patch file. Line-based parsing of the
-// patch is deliberate: the project is dependency-free, and these exact
-// lines are what the composer consumes.
+// `name` matches the package name), the npm `files` allowlist ships both
+// the runtime halves, the patch file, and the legal/release files
+// (LICENSE, NOTICE.md, CHANGELOG.md), and the publish metadata (license,
+// author, keywords) is present. Line-based parsing of the patch is deliberate: the project is
+// dependency-free, and these exact lines are what the composer consumes.
 //
 // Usage: node scripts/test-manifest.mjs
 
@@ -49,6 +50,32 @@ assert(
 assert(
   Array.isArray(manifest.files) && manifest.files.includes('lib') && manifest.files.includes('cordis.patch.yml'),
   'npm files allowlist ships lib/ and cordis.patch.yml',
+)
+assert(
+  Array.isArray(manifest.files)
+    && manifest.files.includes('NOTICE.md')
+    && manifest.files.includes('LICENSE')
+    && manifest.files.includes('CHANGELOG.md'),
+  'npm files allowlist ships the attribution, the license, and the changelog',
+)
+assert(
+  manifest.license === 'MIT'
+    && existsSync(join(root, 'LICENSE'))
+    && readFileSync(join(root, 'LICENSE'), 'utf-8').includes('MIT License'),
+  'an MIT LICENSE file exists and matches the manifest license field',
+)
+assert(
+  existsSync(join(root, 'NOTICE.md'))
+    && readFileSync(join(root, 'NOTICE.md'), 'utf-8').includes('Apache-2.0'),
+  'NOTICE.md carries the Apache-2.0 attribution for the derived phrases',
+)
+assert(
+  typeof manifest.author === 'string' && manifest.author.length > 0,
+  'package.json declares an author',
+)
+assert(
+  Array.isArray(manifest.keywords) && manifest.keywords.length > 0,
+  'package.json declares keywords',
 )
 assert(
   existsSync(join(root, manifest.main)) && existsSync(join(root, manifest.exports['./client'])),

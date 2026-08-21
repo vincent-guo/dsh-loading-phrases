@@ -25,6 +25,10 @@ route.
   `README.zh-CN.md` (Chinese).
 - Conventional commits (`feat:`, `docs:`, …), one logical milestone per
   commit.
+- Every code-affecting milestone updates `CHANGELOG.md` (Keep a Changelog)
+  and bumps the patch/minor version; `LICENSE` (MIT) and `NOTICE.md`
+  (Apache-2.0 attribution) must stay in the npm `files` allowlist — the
+  manifest contract test pins the packaging.
 - `lib/client.js` is a **hand-written CJS-style factory** (no imports, no
   build step) and must stay syntactically valid: run `node --check
   lib/client.js` before committing.

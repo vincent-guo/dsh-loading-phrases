@@ -141,6 +141,9 @@ written by the plugin.
 ```
 dsh-loading-phrases.json   default configuration (served by the host half)
 cordis.patch.yml           profile bundle patch (the loading-phrases row)
+CHANGELOG.md               release notes
+NOTICE.md                  Apache-2.0 attribution for the derived phrases
+LICENSE                    MIT license
 lib/index.js               host half (config HTTP route)
 lib/client.js              client bundle (DOM target, rotation engine, generated data)
 src/data/*.json            phrase/tips content (single source of truth)
@@ -153,11 +156,10 @@ docs/design.md             design baseline and decisions
 
 ## Roadmap
 
-The settings panel (v3) is delivered. No further milestones are planned;
+The settings panel (v3), the profile-bundle distribution (v0.5), and the
+minimal-write save (v0.6) are delivered. No further milestones are planned;
 optional future work:
 
-- auto-save on preference control change (debounced) if the explicit Save
-  button ever feels heavy — achievable without any new dependencies;
 - re-evaluate migrating preferences into the durable `settings` service
   only if a concrete need appears (e.g. a DSH settings export/sync feature
   users want this plugin's preferences to ride). See `docs/design.md` for
@@ -165,4 +167,4 @@ optional future work:
 
 ## License
 
-[MIT](./LICENSE)
+[MIT](./LICENSE). Release notes: [CHANGELOG.md](./CHANGELOG.md).
