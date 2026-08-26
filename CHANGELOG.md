@@ -5,6 +5,18 @@ this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.7.1] - 2026-08-26
+
+### Fixed
+
+- the client bundle now registers under the package name
+  (`@vincent-guo/dsh-loading-phrases`) instead of the pre-rename short id:
+  the harness module loader keys its graph rows by package name and failed
+  the bundle with "loaded without registering ... via
+  __ModuleLoader__.load" after the 0.7.0 rename. The client behavior test
+  now derives the expected registration id from `package.json` `name` so
+  the two cannot drift apart again.
+
 ## [0.7.0] - 2026-08-26
 
 ### Changed

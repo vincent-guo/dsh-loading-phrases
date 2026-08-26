@@ -17,8 +17,10 @@ row — so `dsh plugin add` reconciles the profile's `dsh.profile.bundles`
 automatically and no hand-written load row is needed (the profile's own
 patch layer can still override the row by id; keep the shipped patch file
 in sync with any row rename). The client bundle registers through
-`window.__ModuleLoader__.load`. The host half serves the configuration
-route.
+`window.__ModuleLoader__.load`. The registration id must equal the package
+`name`: the harness module loader keys its graph rows by package name and
+rejects a bundle that registers under any other id. The host half serves
+the configuration route.
 
 ## Repository rules
 

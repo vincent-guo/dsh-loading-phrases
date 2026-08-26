@@ -27,6 +27,7 @@ import { dirname, join } from 'node:path'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const bundle = readFileSync(join(root, 'lib/client.js'), 'utf-8')
+const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf-8'))
 const witty = JSON.parse(readFileSync(join(root, 'src/data/witty.json'), 'utf-8'))
 const tips = JSON.parse(readFileSync(join(root, 'src/data/tips.json'), 'utf-8'))
 
@@ -239,7 +240,10 @@ const runner = new Function(
   `${bundle}\n;return 0`,
 )
 runner(win, document, MutationObserver, setTimeout, clearTimeout, queueMicrotask, fetchStub, consoleStub, requireStub)
-assert(loadedId === 'dsh-loading-phrases', 'bundle registers id dsh-loading-phrases')
+assert(
+  loadedId === manifest.name,
+  `bundle registers under the package name "${manifest.name}" (the module loader keys its graph rows by package name)`,
+)
 assert(typeof factory === 'function', 'factory captured')
 const plugin = factory()
 assert(typeof plugin.apply === 'function', 'exports.apply is a function')
