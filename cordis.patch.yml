@@ -1,7 +1,8 @@
-# The dsh-loading-phrases bundle patch: mounts the plugin row into the
-# profile composition. Resolved through the `dsh.bundle.patch` manifest field
-# and applied in `dsh.profile.bundles` order over the empty profile root; the
-# profile's own cordis.patch.yml still overrides this row by id.
+# The @vincent-guo/dsh-loading-phrases bundle patch: mounts the plugin row
+# into the profile composition. Resolved through the `dsh.bundle.patch`
+# manifest field and applied in `dsh.profile.bundles` order over the empty
+# profile root; the profile's own cordis.patch.yml still overrides this row
+# by id.
 - insert:
     - id: loading-phrases
-      name: dsh-loading-phrases
+      name: '@vincent-guo/dsh-loading-phrases'

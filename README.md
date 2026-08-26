@@ -1,4 +1,4 @@
-# dsh-loading-phrases
+# @vincent-guo/dsh-loading-phrases
 
 Replace the **"Deep diving..."** running status in the DeepSeek Harness Web
 GUI with alternating **witty phrases** and **practical tips** — in the
@@ -33,8 +33,13 @@ status text.
 ## Install
 
 ```bash
-dsh plugin --profile <profile> add dsh-loading-phrases
+dsh plugin --profile <profile> add @vincent-guo/dsh-loading-phrases
 ```
+
+> **0.7.0 note:** the npm package was renamed from `dsh-loading-phrases` to
+> `@vincent-guo/dsh-loading-phrases`; the old name is deprecated on npm.
+> Existing installs should switch the dependency and the
+> `dsh.profile.bundles` entry to the scoped name.
 
 The package declares `dsh.bundle.patch` — a `cordis.patch.yml` at the package
 root that inserts the `loading-phrases` row — so `dsh plugin add` reconciles
@@ -54,7 +59,7 @@ reconciliation, add the load row manually to
 ```yaml
 - insert:
     - id: loading-phrases
-      name: dsh-loading-phrases
+      name: '@vincent-guo/dsh-loading-phrases'
 ```
 
 ## Settings panel

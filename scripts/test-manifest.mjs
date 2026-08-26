@@ -1,4 +1,4 @@
-// dsh-loading-phrases distribution-manifest test.
+// @vincent-guo/dsh-loading-phrases distribution-manifest test.
 //
 // Asserts the bundle contract the profile composer and `dsh plugin add`
 // rely on: the package declares `dsh.bundle.patch`, the patch file exists
@@ -36,14 +36,14 @@ assert(
 const patch = readFileSync(join(root, 'cordis.patch.yml'), 'utf-8')
 const insertIdx = patch.indexOf('- insert:')
 const idIdx = patch.indexOf('- id: loading-phrases')
-const nameIdx = patch.indexOf('name: dsh-loading-phrases')
+const nameIdx = patch.indexOf("name: '@vincent-guo/dsh-loading-phrases'")
 assert(insertIdx !== -1, 'the patch carries an insert block')
 assert(
   idIdx !== -1 && nameIdx !== -1 && insertIdx < idIdx && idIdx < nameIdx,
   'the insert block lists the loading-phrases row (id then name)',
 )
 assert(
-  manifest.name === 'dsh-loading-phrases',
+  manifest.name === '@vincent-guo/dsh-loading-phrases',
   'the row name matches the package name (composer resolves by it)',
 )
 

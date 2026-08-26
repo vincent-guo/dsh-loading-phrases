@@ -4,10 +4,12 @@ Guidance for AI agents working in this repository.
 
 ## What this project is
 
-`dsh-loading-phrases` is a **plain-package plugin** for the DeepSeek Harness
-Web GUI. It replaces the shipped `Deep diving...` running-status line (in its
-original position in the chat flow) with alternating witty phrases and
-practical tips, matching the GUI locale (zh / en).
+`@vincent-guo/dsh-loading-phrases` (project name
+`dsh-loading-phrases`; the unscoped npm package is deprecated) is a
+**plain-package plugin** for the DeepSeek Harness Web GUI. It replaces the
+shipped `Deep diving...` running-status line (in its original position in
+the chat flow) with alternating witty phrases and practical tips, matching
+the GUI locale (zh / en).
 
 Delivery route: the package declares `dsh.bundle.patch` — a
 `cordis.patch.yml` at the package root that inserts the `loading-phrases`

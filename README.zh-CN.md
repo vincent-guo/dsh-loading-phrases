@@ -1,4 +1,4 @@
-# dsh-loading-phrases
+# @vincent-guo/dsh-loading-phrases
 
 把 DeepSeek Harness Web GUI 的 **"Deep diving..."** 运行状态行替换为交替轮换的
 **诙谐俏皮话**与**实用操作提示**——保留原位置、原渐变 shimmer 效果和已运行
@@ -29,8 +29,12 @@
 ## 安装
 
 ```bash
-dsh plugin --profile <profile> add dsh-loading-phrases
+dsh plugin --profile <profile> add @vincent-guo/dsh-loading-phrases
 ```
+
+> **0.7.0 说明：** npm 包名已由 `dsh-loading-phrases` 更名为
+> `@vincent-guo/dsh-loading-phrases`，旧名在 npm 上已标记弃用。已有安装请把
+> 依赖项与 `dsh.profile.bundles` 条目改为带 scope 的新名。
 
 包声明了 `dsh.bundle.patch`（包根目录的 `cordis.patch.yml`，内含
 `loading-phrases` 行），因此 `dsh plugin add` 会自动把包名写入 profile 的
@@ -47,7 +51,7 @@ dsh plugin --profile <profile> add dsh-loading-phrases
 ```yaml
 - insert:
     - id: loading-phrases
-      name: dsh-loading-phrases
+      name: '@vincent-guo/dsh-loading-phrases'
 ```
 
 ## 设置面板

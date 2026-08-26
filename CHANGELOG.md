@@ -1,8 +1,23 @@
 # Changelog
 
-All notable changes to `dsh-loading-phrases` are documented in this file.
+All notable changes to `@vincent-guo/dsh-loading-phrases` are documented in
+this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project adheres to [Semantic Versioning](https://semver.org/).
+
+## [0.7.0] - 2026-08-26
+
+### Changed
+
+- npm package renamed to `@vincent-guo/dsh-loading-phrases` — the scoped
+  namespace marks this plugin as part of the author's planned
+  `@vincent-guo/dsh-*` plugin family. The unscoped `dsh-loading-phrases`
+  package is deprecated on npm with a pointer to the new name.
+- the bundle row label and install instructions now use the scoped name;
+  runtime identifiers are unchanged: the composition row id
+  (`loading-phrases`), the client bundle id, the config route
+  (`/dsh-loading-phrases/config.json`), and the user config file
+  (`$DSH_HOME/dsh-loading-phrases.json`) all keep their names.
 
 ## [0.6.4] - 2026-08-21
 
