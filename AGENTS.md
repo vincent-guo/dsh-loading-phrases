@@ -26,7 +26,7 @@ the configuration route.
 
 - Code, comments, commit messages, and `AGENTS.md` are **English**.
 - User-facing docs are mirrored: `README.md` (English) and
-  `README.zh-CN.md` (Chinese).
+  `README.zh.md` (Chinese).
 - Conventional commits (`feat:`, `docs:`, …), one logical milestone per
   commit.
 - Release artifact naming: GitHub release titles are the bare tag name

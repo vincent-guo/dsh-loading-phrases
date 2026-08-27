@@ -1,10 +1,10 @@
-# @vincent-guo/dsh-loading-phrases
+# DSH Loading Phrases
+
+[English](README.md) | 中文
 
 把 DeepSeek Harness Web GUI 的 **"Deep diving..."** 运行状态行替换为交替轮换的
 **诙谐俏皮话**与**实用操作提示**——保留原位置、原渐变 shimmer 效果和已运行
 时长时钟。
-
-[English](README.md)
 
 ## 行为
 

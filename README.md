@@ -1,11 +1,11 @@
-# @vincent-guo/dsh-loading-phrases
+# DSH Loading Phrases
+
+English | [中文](README.zh.md)
 
 Replace the **"Deep diving..."** running status in the DeepSeek Harness Web
 GUI with alternating **witty phrases** and **practical tips** — in the
 original position, with the original shimmer effect and the elapsed clock
 intact.
-
-[中文说明](README.zh-CN.md)
 
 ## Behavior
 
