@@ -29,6 +29,9 @@ the configuration route.
   `README.zh-CN.md` (Chinese).
 - Conventional commits (`feat:`, `docs:`, …), one logical milestone per
   commit.
+- Release artifact naming: GitHub release titles are the bare tag name
+  (`v0.7.1`) with the detail in the release body; git tag annotations carry
+  the one-line summary (`v0.7.1: <summary>`).
 - Every code-affecting milestone updates `CHANGELOG.md` (Keep a Changelog)
   and bumps the patch/minor version; `LICENSE` (MIT) and `NOTICE.md`
   (Apache-2.0 attribution) must stay in the npm `files` allowlist — the
